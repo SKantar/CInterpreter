@@ -1,0 +1,29 @@
+digraph astgraph {
+  node [shape=circle, fontsize=12, fontname="Courier", height=.1];
+  ranksep=.3;
+  edge [arrowsize=.5]
+
+  node1 [label="Program"]
+  node2 [label="ProcDecl:func1"]
+  node3 [label="Param"]
+  node4 [label="a"]
+  node3 -> node4
+  node5 [label="int"]
+  node3 -> node5
+  node2 -> node3
+  node1 -> node2
+  node6 [label="ProcDecl:main"]
+  node7 [label="Param"]
+  node8 [label="a"]
+  node7 -> node8
+  node9 [label="int"]
+  node7 -> node9
+  node6 -> node7
+  node10 [label="Param"]
+  node11 [label="b"]
+  node10 -> node11
+  node12 [label="int"]
+  node10 -> node12
+  node6 -> node10
+  node1 -> node6
+}

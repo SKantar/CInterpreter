@@ -65,6 +65,13 @@ class ASTVisualizer(NodeVisitor):
             s = '  node{} -> node{}\n'.format(node._num, param_node._num)
             self.dot_body.append(s)
 
+        self.visit(node.block_node)
+        s = '  node{} -> node{}\n'.format(node._num, node.block_node._num)
+        self.dot_body.append(s)
+
+
+
+
     def visit_Param(self, node):
         s = '  node{} [label="Param"]\n'.format(self.ncount)
         self.dot_body.append(s)
@@ -130,10 +137,29 @@ class ASTVisualizer(NodeVisitor):
         s = '  node{} -> node{}\n'.format(node._num, node.expr._num)
         self.dot_body.append(s)
 
+    def visit_NoOp(self, node):
+        s = '  node{} [label="NoOp"]\n'.format(self.ncount)
+        self.dot_body.append(s)
+        node._num = self.ncount
+        self.ncount += 1
+
+    def visit_Block(self, node):
+        s = '  node{} [label="Block"]\n'.format(self.ncount)
+        self.dot_body.append(s)
+        node._num = self.ncount
+        self.ncount += 1
+
+        for child in node.children:
+            self.visit(child)
+            s = '  node{} -> node{}\n'.format(node._num, child._num)
+            self.dot_body.append(s)
+
+
     def gendot(self):
         tree = self.parser.parse()
         self.visit(tree)
         return ''.join(self.dot_header + self.dot_body + self.dot_footer)
+
 
 
 def main():

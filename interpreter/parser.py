@@ -6,79 +6,7 @@
 #                                                                             #
 ###############################################################################
 from .lexer import *
-
-
-class Node(object):
-    pass
-
-
-class Program(Node):
-    def __init__(self, declarations):
-        self.children = declarations
-
-
-class VarDecl(Node):
-    def __init__(self, var_node, type_node):
-        self.var_node = var_node
-        self.type_node = type_node
-
-
-class FunctionDecl(Node):
-    def __init__(self, type_node, func_name, params, block_node):
-        self.type_node = type_node
-        self.func_name = func_name
-        self.params = params            # a list of Param nodes
-        self.block_node = block_node
-
-
-class Param(Node):
-    def __init__(self, type_node, var_node):
-        self.var_node = var_node
-        self.type_node = type_node
-
-
-class Type(Node):
-    def __init__(self, token):
-        self.token = token
-        self.value = token.value
-
-
-class Var(Node):
-    """The Var node is constructed out of ID token."""
-    def __init__(self, token):
-        self.token = token
-        self.value = token.value
-
-
-class Block(Node):
-    def __init__(self, statements):
-        self.children = statements
-
-
-class Assign(Node):
-    def __init__(self, left, op, right):
-        self.left = left
-        self.token = self.op = op
-        self.right = right
-
-
-class BinOp(Node):
-    def __init__(self, left, op, right):
-        self.left = left
-        self.token = self.op = op
-        self.right = right
-
-
-class Num(Node):
-    def __init__(self, token):
-        self.token = token
-        self.value = token.value
-
-
-class UnaryOp(Node):
-    def __init__(self, op, expr):
-        self.token = self.op = op
-        self.expr = expr
+from .tree import *
 
 
 class Parser(object):
@@ -120,7 +48,7 @@ class Parser(object):
             if self.is_function_declaration():
                 declarations.append(self.function_declaration())
             else:
-                declarations.extend(self.var_declaration_line())
+                declarations.extend(self.var_declaration_list())
                 self.eat(SEMICOLON)
         return declarations
 
@@ -141,7 +69,7 @@ class Parser(object):
             block_node=self.block()
         )
 
-    def var_declaration_line(self):
+    def var_declaration_list(self):
         """
         var_declarations  : type_spec var (ASSIGN expr)? (COMMA var (ASSIGN expr)?)* SEMICOLON
         """
@@ -150,16 +78,16 @@ class Parser(object):
         type_node = self.type_spec()
         var_node = self.variable()
 
-        declarations.extend(self.var_declaration(type_node, var_node))
+        declarations.extend(self.var_initialization(type_node, var_node))
 
         while self.current_token.type == COMMA:
             self.eat(COMMA)
             var_node = self.variable()
-            declarations.extend(self.var_declaration(type_node, var_node))
+            declarations.extend(self.var_initialization(type_node, var_node))
 
         return declarations
 
-    def var_declaration(self, type_node, var_node):
+    def var_initialization(self, type_node, var_node):
         declarations = list()
 
         declarations.append(VarDecl(
@@ -218,8 +146,47 @@ class Parser(object):
     def block(self):
         """block : LBRACKET statement_list RBRACKET"""
         self.eat(LBRACKET)
-        node = Block([])
+        node = Block(self.statement_list())
         self.eat(RBRACKET)
+        return node
+
+    def statement_list(self):
+        """
+        statement_list : statement
+                       | statement SEMI statement_list
+        """
+        node = self.statement()
+
+        results = node
+
+        while self.current_token.type == SEMICOLON:
+            self.eat(SEMICOLON)
+            results.extend(self.statement())
+
+        return results
+
+    def statement(self):
+        """
+        statement : compound_statement
+                  | assignment_statement
+                  | empty
+        """
+        if self.current_token.type == ID:
+            node = [self.assignment_statement()]
+        elif self.current_token.type == TYPE:
+            node = self.var_declaration_list()
+        else:
+            node = [self.empty()]
+        return node
+
+    def assignment_statement(self):
+        """
+        assignment_statement : variable ASSIGN expr
+        """
+        left = self.variable()
+        token = self.current_token
+        self.eat(ASSIGN)
+        node = Assign(left, token, self.expr())
         return node
 
     def type_spec(self):
@@ -297,6 +264,10 @@ class Parser(object):
         else:
             node = self.variable()
             return node
+
+    def empty(self):
+        """An empty production"""
+        return NoOp()
 
     def parse(self):
 

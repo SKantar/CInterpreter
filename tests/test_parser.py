@@ -42,3 +42,14 @@ class LexerTestCase(unittest.TestCase):
             }
         """)
         parser.parse()
+
+    def test_parser_assignment(self):
+        parser = self.makeParser("""
+            int a = 2, b = 2;
+            int b;
+            int main(int a, int b){
+                int a;
+                a = 2 + 3;
+            }
+        """)
+        parser.parse()

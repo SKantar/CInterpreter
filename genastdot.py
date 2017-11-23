@@ -37,8 +37,22 @@ class ASTVisualizer(NodeVisitor):
             s = '  node{} -> node{}\n'.format(node._num, child._num)
             self.dot_body.append(s)
 
+    def visit_VarDecl(self, node):
+        s = '  node{} [label="VarDecl"]\n'.format(self.ncount)
+        self.dot_body.append(s)
+        node._num = self.ncount
+        self.ncount += 1
+
+        self.visit(node.var_node)
+        s = '  node{} -> node{}\n'.format(node._num, node.var_node._num)
+        self.dot_body.append(s)
+
+        self.visit(node.type_node)
+        s = '  node{} -> node{}\n'.format(node._num, node.type_node._num)
+        self.dot_body.append(s)
+
     def visit_FunctionDecl(self, node):
-        s = '  node{} [label="ProcDecl:{}"]\n'.format(
+        s = '  node{} [label="FunctionDecl:{}"]\n'.format(
             self.ncount,
             node.func_name
         )
@@ -57,13 +71,23 @@ class ASTVisualizer(NodeVisitor):
         node._num = self.ncount
         self.ncount += 1
 
-        self.visit(node.var_node)
-        s = '  node{} -> node{}\n'.format(node._num, node.var_node._num)
-        self.dot_body.append(s)
+        for child_node in (node.var_node, node.type_node):
+            self.visit(child_node)
+            s = '  node{} -> node{}\n'.format(node._num, child_node._num)
+            self.dot_body.append(s)
 
-        self.visit(node.type_node)
-        s = '  node{} -> node{}\n'.format(node._num, node.type_node._num)
+
+    def visit_Assign(self, node):
+        s = '  node{} [label="{}"]\n'.format(self.ncount, node.op.value)
         self.dot_body.append(s)
+        node._num = self.ncount
+        self.ncount += 1
+
+        for child_node in (node.left, node.right):
+            self.visit(child_node)
+            s = '  node{} -> node{}\n'.format(node._num, child_node._num)
+            self.dot_body.append(s)
+
 
     def visit_Type(self, node):
         s = '  node{} [label="{}"]\n'.format(self.ncount, node.token.value)
@@ -76,6 +100,35 @@ class ASTVisualizer(NodeVisitor):
         self.dot_body.append(s)
         node._num = self.ncount
         self.ncount += 1
+
+    def visit_Num(self, node):
+        s = '  node{} [label="{}"]\n'.format(self.ncount, node.token.value)
+        self.dot_body.append(s)
+        node._num = self.ncount
+        self.ncount += 1
+
+    def visit_BinOp(self, node):
+        s = '  node{} [label="{}"]\n'.format(self.ncount, node.op.value)
+        self.dot_body.append(s)
+        node._num = self.ncount
+        self.ncount += 1
+
+        self.visit(node.left)
+        self.visit(node.right)
+
+        for child_node in (node.left, node.right):
+            s = '  node{} -> node{}\n'.format(node._num, child_node._num)
+            self.dot_body.append(s)
+
+    def visit_UnaryOp(self, node):
+        s = '  node{} [label="unary {}"]\n'.format(self.ncount, node.op.value)
+        self.dot_body.append(s)
+        node._num = self.ncount
+        self.ncount += 1
+
+        self.visit(node.expr)
+        s = '  node{} -> node{}\n'.format(node._num, node.expr._num)
+        self.dot_body.append(s)
 
     def gendot(self):
         tree = self.parser.parse()

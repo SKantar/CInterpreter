@@ -8,10 +8,37 @@ class LexerTestCase(unittest.TestCase):
         parser = Parser(lexer)
         return parser
 
-    def test_lexer_integer(self):
+    def test_parser_function(self):
         parser = self.makeParser("""
-            int main(a, int b){
+            int main(){
                 
+            }
+        """)
+        parser.parse()
+
+    def test_parser_function_params(self):
+        parser = self.makeParser("""
+            int main(int a, int b){
+
+            }
+        """)
+        parser.parse()
+
+    def test_parser_vars(self):
+        parser = self.makeParser("""
+            int a, b;
+            int main(int a, int b){
+
+            }
+        """)
+        parser.parse()
+
+    def test_parser_vars_with_assignment(self):
+        parser = self.makeParser("""
+            int a = 2, b = 2;
+            int b;
+            int main(int a, int b){
+
             }
         """)
         parser.parse()

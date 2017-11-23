@@ -55,6 +55,32 @@ class Block(Node):
         self.children = statements
 
 
+class Assign(Node):
+    def __init__(self, left, op, right):
+        self.left = left
+        self.token = self.op = op
+        self.right = right
+
+
+class BinOp(Node):
+    def __init__(self, left, op, right):
+        self.left = left
+        self.token = self.op = op
+        self.right = right
+
+
+class Num(Node):
+    def __init__(self, token):
+        self.token = token
+        self.value = token.value
+
+
+class UnaryOp(Node):
+    def __init__(self, op, expr):
+        self.token = self.op = op
+        self.expr = expr
+
+
 class Parser(object):
     def __init__(self, lexer):
         self.lexer = lexer
@@ -94,7 +120,8 @@ class Parser(object):
             if self.is_function_declaration():
                 declarations.append(self.function_declaration())
             else:
-                self.error()
+                declarations.extend(self.var_declaration_line())
+                self.eat(SEMICOLON)
         return declarations
 
     def function_declaration(self):
@@ -113,6 +140,42 @@ class Parser(object):
             params=params,
             block_node=self.block()
         )
+
+    def var_declaration_line(self):
+        """
+        var_declarations  : type_spec var (ASSIGN expr)? (COMMA var (ASSIGN expr)?)* SEMICOLON
+        """
+        declarations = []
+
+        type_node = self.type_spec()
+        var_node = self.variable()
+
+        declarations.extend(self.var_declaration(type_node, var_node))
+
+        while self.current_token.type == COMMA:
+            self.eat(COMMA)
+            var_node = self.variable()
+            declarations.extend(self.var_declaration(type_node, var_node))
+
+        return declarations
+
+    def var_declaration(self, type_node, var_node):
+        declarations = list()
+
+        declarations.append(VarDecl(
+            type_node=type_node,
+            var_node=var_node
+        ))
+
+        if self.current_token.type == ASSIGN:
+            token = self.current_token
+            self.eat(ASSIGN)
+            declarations.append(Assign(
+                left=var_node,
+                op=token,
+                right=self.expr()
+            ))
+        return declarations
 
     def parameters(self):
         """
@@ -174,6 +237,66 @@ class Parser(object):
         node = Var(self.current_token)
         self.eat(ID)
         return node
+
+    def expr(self):
+        """
+        expr : term ((PLUS | MINUS) term)*
+        """
+        node = self.term()
+
+        while self.current_token.type in (PLUS, MINUS):
+            token = self.current_token
+            if token.type == PLUS:
+                self.eat(PLUS)
+            elif token.type == MINUS:
+                self.eat(MINUS)
+
+            node = BinOp(left=node, op=token, right=self.term())
+
+        return node
+
+    def term(self):
+        """term : factor ((MUL | INTEGER_DIV | FLOAT_DIV) factor)*"""
+        node = self.factor()
+
+        while self.current_token.type in (MUL, DIV):
+            token = self.current_token
+            if token.type == MUL:
+                self.eat(MUL)
+            elif token.type == DIV:
+                self.eat(DIV)
+
+            node = BinOp(left=node, op=token, right=self.factor())
+
+        return node
+
+    def factor(self):
+        """factor : PLUS factor
+                  | MINUS factor
+                  | INT_NUMBER
+                  | LPAREN expr RPAREN
+                  | variable
+        """
+        token = self.current_token
+        if token.type == PLUS:
+            self.eat(PLUS)
+            node = UnaryOp(token, self.factor())
+            return node
+        elif token.type == MINUS:
+            self.eat(MINUS)
+            node = UnaryOp(token, self.factor())
+            return node
+        elif token.type == INT_NUMBER:
+            self.eat(INT_NUMBER)
+            return Num(token)
+        elif token.type == LPAREN:
+            self.eat(LPAREN)
+            node = self.expr()
+            self.eat(RPAREN)
+            return node
+        else:
+            node = self.variable()
+            return node
 
     def parse(self):
 

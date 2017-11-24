@@ -7,6 +7,7 @@
 ###############################################################################
 from .lexer import *
 from .tree import *
+from .utils import *
 
 
 class Parser(object):
@@ -165,6 +166,7 @@ class Parser(object):
 
         return results
 
+    @multi
     def statement(self):
         """
         statement : compound_statement
@@ -172,11 +174,13 @@ class Parser(object):
                   | empty
         """
         if self.current_token.type == ID:
-            node = [self.assignment_statement()]
+            node = self.assignment_statement()
         elif self.current_token.type == TYPE:
             node = self.var_declaration_list()
+        elif self.current_token.type == IF:
+            node = self.if_statement()
         else:
-            node = [self.empty()]
+            node = self.empty()
         return node
 
     def assignment_statement(self):
@@ -188,6 +192,22 @@ class Parser(object):
         self.eat(ASSIGN)
         node = Assign(left, token, self.expr())
         return node
+
+    def if_statement(self):
+        self.eat(IF)
+        self.eat(LPAREN)
+        cond_node = self.expr()
+        self.eat(RPAREN)
+        if_block = self.block()
+        else_block = self.empty()
+        if self.current_token.type == ELSE:
+            self.eat(ELSE)
+            else_block = self.block()
+        return IfStmt(
+            condition=cond_node,
+            if_block=if_block,
+            else_block=else_block
+        )
 
     def type_spec(self):
         """type_spec : TYPE

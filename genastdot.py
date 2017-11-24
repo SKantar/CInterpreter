@@ -70,8 +70,6 @@ class ASTVisualizer(NodeVisitor):
         self.dot_body.append(s)
 
 
-
-
     def visit_Param(self, node):
         s = '  node{} [label="Param"]\n'.format(self.ncount)
         self.dot_body.append(s)
@@ -153,6 +151,24 @@ class ASTVisualizer(NodeVisitor):
             self.visit(child)
             s = '  node{} -> node{}\n'.format(node._num, child._num)
             self.dot_body.append(s)
+
+    def visit_IfStmt(self, node):
+        s = '  node{} [label="IfStmt"]\n'.format(self.ncount)
+        self.dot_body.append(s)
+        node._num = self.ncount
+        self.ncount += 1
+
+        self.visit(node.condition_stmt)
+        s = '  node{} -> node{} [label="condition"]\n'.format(node._num, node.condition_stmt._num)
+        self.dot_body.append(s)
+
+        self.visit(node.if_block)
+        s = '  node{} -> node{} [label="IF block"]\n'.format(node._num, node.if_block._num)
+        self.dot_body.append(s)
+
+        self.visit(node.else_block)
+        s = '  node{} -> node{} [label="ELSE block"]\n'.format(node._num, node.else_block._num)
+        self.dot_body.append(s)
 
 
     def gendot(self):

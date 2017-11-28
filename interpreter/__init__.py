@@ -1,3 +1,4 @@
-from . import lexer
-from . import parser
+from . import utils
+from . import lexical_analysis
+from . import syntax_analysis
 from . import interpreter

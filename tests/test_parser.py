@@ -2,8 +2,8 @@ import unittest
 
 class LexerTestCase(unittest.TestCase):
     def makeParser(self, text):
-        from interpreter.lexer import Lexer
-        from interpreter.parser import Parser
+        from interpreter.lexical_analysis.lexer import Lexer
+        from interpreter.syntax_analysis.parser import Parser
         lexer = Lexer(text)
         parser = Parser(lexer)
         return parser
@@ -69,6 +69,30 @@ class LexerTestCase(unittest.TestCase):
                 }else{
                     b = 2;
                 }
+                int a = 2;
+                return 3;
+            }
+        """)
+        parser.parse()
+
+    def test_function_call(self):
+        parser = self.makeParser("""
+            int a = 2, b = 2;
+            int b;
+            
+            int test(int a, int b){
+                return a + b;
+            }
+            
+            int main(int a, int b){
+                int a;
+                a = 2 + 3;
+                if(a + 2) {
+                    a = 3 - 1;
+                }else{
+                    b = 1;
+                }
+                return test(1, 3);
             }
         """)
         parser.parse()

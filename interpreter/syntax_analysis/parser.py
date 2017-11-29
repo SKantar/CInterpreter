@@ -1,37 +1,35 @@
 """ SCI - Simple C Interpreter """
 
-###############################################################################
-#                                                                             #
-#  PARSER                                                                     #
-#                                                                             #
-###############################################################################
 from ..lexical_analysis.token_type import *
 from .tree import *
 from ..utils.utils import restorable
 
+class SyntaxError(Exception):
+    pass
+
+
 class Parser(object):
     def __init__(self, lexer):
         self.lexer = lexer
-        # set current token to the first token taken from the input
-        self.current_token = self.lexer.get_next_token()
+        self.current_token = self.lexer.get_next_token()        # set current token to the first token taken from the input
 
-    def error(self, expected=None, obtained=None):
-        if not expected and not obtained:
-            raise Exception('Invalid syntax')
-        else:
-            raise Exception('Expected token <{}> but found <{}> at line {}.'.format(
-                expected, obtained, self.lexer.line
-            ))
+    def error(self, message):
+        raise SyntaxError(message)
 
     def eat(self, token_type):
-        # compare the current token type with the passed token
-        # type and if they match then "eat" the current token
-        # and assign the next token to the self.current_token,
-        # otherwise raise an exception.
+        """ Compare the current token type with the passed token
+        type and if they match then "eat" the current token
+        and assign the next token to the self.current_token,
+        otherwise raise an exception. """
+
         if self.current_token.type == token_type:
             self.current_token = self.lexer.get_next_token()
         else:
-            self.error(token_type, self.current_token.type)
+            self.error(
+                'Expected token <{}> but found <{}> at line {}.'.format(
+                    token_type, self.current_token.type, self.lexer.line
+                )
+            )
 
     def program(self):
         """
@@ -42,16 +40,47 @@ class Parser(object):
 
     def declarations(self):
         """
-        declarations                : (function_declaration | var_declaration_list)*
+        declarations                : (include_library | function_declaration | var_declaration_list)*
         """
         declarations = []
 
-        while self.current_token.type == TYPE:
-            if self.check_function(declaration=True):
+        while self.current_token.type in [TYPE, HASH]:
+            if self.current_token.type == HASH:
+                declarations.append(self.include_library())
+            elif self.check_function(declaration=True):
                 declarations.append(self.function_declaration())
             else:
                 declarations.extend(self.var_declaration_list())
         return declarations
+
+    def include_library(self):
+        """
+        include_library             : HASH ID<'include'> LESS_THAN ID DOT ID<'h'> GREATER_THAN
+        """
+        self.eat(HASH)
+        token = self.current_token
+        if token.value != 'include':
+            self.error(
+                'Expected token "include" but found {} at line {}.'.format(
+                    token.value, self.lexer.line
+                )
+            )
+
+        self.eat(ID)
+        self.eat(LESS_THAN)
+        token = self.current_token
+        self.eat(ID)
+        self.eat(DOT)
+        extension = self.current_token
+        if extension.value != 'h':
+            self.error(
+                'You can include only *.h files [line {}]'.format(self.lexer.line)
+            )
+        self.eat(ID)
+        self.eat(GREATER_THAN)
+        return IncludeLibrary(
+            library_name=token.value
+        )
 
     def function_declaration(self):
         """
@@ -128,7 +157,6 @@ class Parser(object):
 
         param                       : type_spec variable
         """
-
         if self.current_token.type == RPAREN:
             return []
 
@@ -351,7 +379,9 @@ class Parser(object):
         """
         program                     : declarations
 
-        declarations                : (function_declaration | var_declaration_list)*
+        declarations                : (include_library | function_declaration | var_declaration_list)*
+
+        include_library             : HASH ID<'include'> LESS_THAN ID DOT ID<'h'> GREATER_THAN
 
         function_declaration        : type_spec ID LPAREN parameters RPAREN function_body
 
@@ -361,7 +391,8 @@ class Parser(object):
 
         var_initialization          : (ASSIGN expr)?
 
-        parameters                  : empty | param (COMMA param)*
+        parameters                  : empty
+                                    | param (COMMA param)*
 
         param                       : type_spec variable
 
@@ -397,13 +428,13 @@ class Parser(object):
                                     | INT_NUMBER
                                     | LPAREN expr RPAREN
                                     | variable
+                                    | function_call
 
         function_call               : ID LPAREN (expr)* RPAREN
 
         """
-
         node = self.program()
         if self.current_token.type != EOF:
-            self.error()
+            self.error("Expected token <EOF> but found <{}>".format(self.current_token.type))
 
         return node

@@ -151,6 +151,16 @@ class ASTVisualizer(NodeVisitor):
         node._num = self.ncount
         self.ncount += 1
 
+    def visit_IncludeLibrary(self, node):
+        s = '  node{} [label="Include:{}"]\n'.format(
+            self.ncount,
+            node.library_name
+        )
+        self.dot_body.append(s)
+        node._num = self.ncount
+        self.ncount += 1
+
+
     def visit_Block(self, node):
         s = '  node{} [label="Block"]\n'.format(self.ncount)
         self.dot_body.append(s)

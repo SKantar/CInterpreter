@@ -12,6 +12,9 @@ class VarDecl(Node):
         self.var_node = var_node
         self.type_node = type_node
 
+class IncludeLibrary(Node):
+    def __init__(self, library_name):
+        self.library_name = library_name
 
 class FunctionDecl(Node):
     def __init__(self, type_node, func_name, params, body):

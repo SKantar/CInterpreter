@@ -47,7 +47,7 @@ digraph astgraph {
   node23 [label="int"]
   node21 -> node23
   node17 -> node21
-  node24 [label="Block"]
+  node24 [label="Body"]
   node25 [label="VarDecl"]
   node26 [label="a"]
   node25 -> node26
@@ -71,7 +71,7 @@ digraph astgraph {
   node34 -> node35
   node34 -> node36
   node33 -> node34 [label="condition"]
-  node37 [label="Block"]
+  node37 [label="Body"]
   node38 [label="="]
   node39 [label="a"]
   node38 -> node39
@@ -82,20 +82,32 @@ digraph astgraph {
   node40 -> node42
   node38 -> node40
   node37 -> node38
-  node43 [label="NoOp"]
-  node37 -> node43
   node33 -> node37 [label="IF block"]
-  node44 [label="Block"]
-  node45 [label="="]
-  node46 [label="b"]
-  node45 -> node46
-  node47 [label="1"]
-  node45 -> node47
+  node43 [label="Body"]
+  node44 [label="="]
+  node45 [label="b"]
   node44 -> node45
-  node48 [label="NoOp"]
-  node44 -> node48
-  node33 -> node44 [label="ELSE block"]
+  node46 [label="1"]
+  node44 -> node46
+  node43 -> node44
+  node33 -> node43 [label="ELSE block"]
   node24 -> node33
+  node47 [label="VarDecl"]
+  node48 [label="a"]
+  node47 -> node48
+  node49 [label="int"]
+  node47 -> node49
+  node24 -> node47
+  node50 [label="="]
+  node51 [label="a"]
+  node50 -> node51
+  node52 [label="2"]
+  node50 -> node52
+  node24 -> node50
+  node53 [label="ReturnStmt"]
+  node54 [label="a"]
+  node53 -> node54
+  node24 -> node53
   node17 -> node24
   node1 -> node17
 }

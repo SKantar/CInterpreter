@@ -1,4 +1,5 @@
 import unittest
+from interpreter.lexical_analysis.token_type import *
 
 class LexerTestCase(unittest.TestCase):
     def makeLexer(self, text):
@@ -6,73 +7,97 @@ class LexerTestCase(unittest.TestCase):
         lexer = Lexer(text)
         return lexer
 
+    def check(self, text, token_type, value=None):
+        if not value:
+            value = text
+        lexer = self.makeLexer(text)
+        token = lexer.get_next_token()
+        self.assertEqual(token.type, token_type)
+        self.assertEqual(token.value, value)
+        token = lexer.get_next_token()
+        self.assertEqual(token.type, EOF)
+
     def test_lexer_integer(self):
-        from interpreter.lexical_analysis.lexer import INT_NUMBER
-        lexer = self.makeLexer('234')
-        token = lexer.get_next_token()
-        self.assertEqual(token.type, INT_NUMBER)
-
-        self.assertEqual(token.value, 234)
-
-    def test_lexer_mul(self):
-        from interpreter.lexical_analysis.lexer import MUL
-        lexer = self.makeLexer('*')
-        token = lexer.get_next_token()
-        self.assertEqual(token.type, MUL)
-
-        self.assertEqual(token.value, '*')
-
-    def test_lexer_div(self):
-        from interpreter.lexical_analysis.lexer import DIV
-        lexer = self.makeLexer(' / ')
-        token = lexer.get_next_token()
-        self.assertEqual(token.type, DIV)
-        self.assertEqual(token.value, '/')
-
-    def test_lexer_plus(self):
-        from interpreter.lexical_analysis.lexer import PLUS
-        lexer = self.makeLexer('+')
-        token = lexer.get_next_token()
-        self.assertEqual(token.type, PLUS)
-        self.assertEqual(token.value, '+')
-
-    def test_lexer_minus(self):
-        from interpreter.lexical_analysis.lexer import MINUS
-        lexer = self.makeLexer('-')
-        token = lexer.get_next_token()
-        self.assertEqual(token.type, MINUS)
-        self.assertEqual(token.value, '-')
-
-    def test_lexer_lparen(self):
-        from interpreter.lexical_analysis.lexer import LPAREN
-        lexer = self.makeLexer('(')
-        token = lexer.get_next_token()
-        self.assertEqual(token.type, LPAREN)
-        self.assertEqual(token.value, '(')
-
-    def test_lexer_rparen(self):
-        from interpreter.lexical_analysis.lexer import RPAREN
-        lexer = self.makeLexer(')')
-        token = lexer.get_next_token()
-        self.assertEqual(token.type, RPAREN)
-
-        self.assertEqual(token.value, ')')
-
-    def test_lexer_new_tokens(self):
-        from interpreter.lexical_analysis.lexer import ASSIGN, ID, TYPE, COMMA, SEMICOLON
-        records = (
-            ('=', ASSIGN, ':='),
-            ('number', ID, 'number'),
-            ('int', TYPE, 'int'),
-            (',', COMMA, ','),
-            (';', SEMICOLON, ';'),
+        self.check(
+            text='234',
+            token_type=INT_NUMBER,
+            value=234
         )
 
-        for text, tok_type, tok_val in records:
-            lexer = self.makeLexer(text)
-            token = lexer.get_next_token()
-            self.assertEqual(token.type, tok_type)
+    def test_lexer_mul(self):
+        self.check(
+            text='*',
+            token_type=MUL
+        )
 
-        self.assertEqual(token.value, tok_val)
+    def test_lexer_div(self):
+        self.check(
+            text='/',
+            token_type=DIV
+        )
 
+    def test_lexer_plus(self):
+        self.check(
+            text='+',
+            token_type=PLUS
+        )
+
+    def test_lexer_minus(self):
+        self.check(
+            text='-',
+            token_type=MINUS
+        )
+
+    def test_lexer_lparen(self):
+        self.check(
+            text='(',
+            token_type=LPAREN
+        )
+
+    def test_lexer_rparen(self):
+        self.check(
+            text=')',
+            token_type=RPAREN
+        )
+
+    def test_lexer_lbracket(self):
+        self.check(
+            text='{',
+            token_type=LBRACKET
+        )
+
+    def test_lexer_rbracket(self):
+        self.check(
+            text='}',
+            token_type=RBRACKET
+        )
+
+    def test_lexer_other_tokens(self):
+        check_records = (
+            ('=', ASSIGN, '='),
+            ('name', ID, 'name'),
+            ('int', TYPE, 'int'),
+            (',', COMMA, ','),
+            ('if', IF, 'if'),
+            ('else', ELSE, 'else'),
+            ('return', RETURN, 'return'),
+            (';', SEMICOLON, ';'),
+            (',', COMMA, ','),
+            ('.', DOT, '.'),
+            ('#', HASH, '#'),
+            ('<', LESS_THAN, '<'),
+            ('>', GREATER_THAN, '>'),
+        )
+
+        for text, tok_type, tok_val in check_records:
+            self.check(
+                text=text,
+                token_type=tok_type,
+                value=tok_val
+            )
+
+    def test_lexer_unexpected_char(self):
+        from interpreter.lexical_analysis.lexer import LexicalError
+        lexer = self.makeLexer('@')
+        self.assertRaises(LexicalError, lexer.get_next_token)
 

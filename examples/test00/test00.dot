@@ -4,6 +4,8 @@ digraph astgraph {
   edge [arrowsize=.5]
 
   node1 [label="Program"]
-  node2 [label="ProcDecl:main"]
+  node2 [label="FunctionDecl:main"]
+  node3 [label="Body"]
+  node2 -> node3
   node1 -> node2
 }

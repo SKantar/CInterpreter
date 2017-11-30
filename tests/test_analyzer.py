@@ -13,6 +13,7 @@ class SemanticAnalyzerTestCase(unittest.TestCase):
 
     def test_analyzer(self):
         self.analyze("""
+            #include <stdio.h>
             int a, b;
             int test(int a){
             
@@ -28,8 +29,9 @@ class SemanticAnalyzerTestCase(unittest.TestCase):
                     b = 2;
                 }
                 
-                int r = test();
-                return c + 2;
+                int r = test(2);
+                printf("%d", c + 2);
+                return 0;
             }
         """)
 

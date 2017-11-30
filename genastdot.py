@@ -160,6 +160,15 @@ class ASTVisualizer(NodeVisitor):
         node._num = self.ncount
         self.ncount += 1
 
+    def visit_String(self, node):
+        s = '  node{} [label="String:{}"]\n'.format(
+            self.ncount,
+            node.token.value
+        )
+        self.dot_body.append(s)
+        node._num = self.ncount
+        self.ncount += 1
+
 
     def visit_Block(self, node):
         s = '  node{} [label="Block"]\n'.format(self.ncount)

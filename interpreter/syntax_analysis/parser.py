@@ -206,12 +206,17 @@ class Parser(object):
     def statement(self):
         """
         statement                   : assignment_statement
+                                    | function_call SEMICOLON
                                     | if_statement
                                     | return_statement
                                     | empty
         """
         if self.current_token.type == ID:
-            node = self.assignment_statement()
+            if self.check_function():
+                node = self.function_call()
+                self.eat(SEMICOLON)
+            else:
+                node = self.assignment_statement()
         elif self.current_token.type == IF:
             node = self.if_statement()
         elif self.current_token.type == RETURN:
@@ -340,6 +345,9 @@ class Parser(object):
         elif token.type == MINUS:
             self.eat(MINUS)
             return UnaryOp(token, self.factor())
+        elif token.type == AMPERSAND:
+            self.eat(AMPERSAND)
+            return UnaryOp(token, self.variable())
         elif token.type == INT_NUMBER:
             self.eat(INT_NUMBER)
             return Num(token)
@@ -355,14 +363,18 @@ class Parser(object):
 
     def function_call(self):
         """
-        function_call               : ID LPAREN (expr)* RPAREN
+        function_call               : ID LPAREN (expr | STRING)* RPAREN
         """
         func_name = self.current_token.value
         self.eat(ID)
         self.eat(LPAREN)
         params = []
         while self.current_token.type != RPAREN:
-            params.append(self.expr())
+            if self.current_token.type == STRING:
+                params.append(String(self.current_token))
+                self.eat(STRING)
+            else:
+                params.append(self.expr())
             if self.current_token.type == COMMA:
                 self.eat(COMMA)
         self.eat(RPAREN)
@@ -403,6 +415,7 @@ class Parser(object):
                                     | statement statement_list
 
         statement                   : assignment_statement
+                                    | function_call SEMICOLON
                                     | if_statement
                                     | return_statement
                                     | empty
@@ -430,7 +443,7 @@ class Parser(object):
                                     | variable
                                     | function_call
 
-        function_call               : ID LPAREN (expr)* RPAREN
+        function_call               : ID LPAREN (expr | STRING)* RPAREN
 
         """
         node = self.program()

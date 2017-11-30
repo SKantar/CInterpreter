@@ -1,5 +1,9 @@
 from ..syntax_analysis.tree import NodeVisitor
 from .table import *
+from ..utils.utils import get_all_module_func
+
+class SemanticError(Exception):
+    pass
 
 class SemanticAnalyzer(NodeVisitor):
 
@@ -7,7 +11,6 @@ class SemanticAnalyzer(NodeVisitor):
         self.current_scope = None
 
     def visit_Program(self, node):
-        # print('ENTER scope: global')
         global_scope = ScopedSymbolTable(
             scope_name='global',
             scope_level=1,
@@ -19,10 +22,7 @@ class SemanticAnalyzer(NodeVisitor):
         for child in node.children:
             self.visit(child)
 
-        # print(global_scope)
-
         self.current_scope = self.current_scope.enclosing_scope
-        # print('LEAVE scope: global')
 
     def visit_VarDecl(self, node):
         type_name = node.type_node.value
@@ -36,11 +36,22 @@ class SemanticAnalyzer(NodeVisitor):
         # Signal an error if the table alrady has a symbol
         # with the same name
         if self.current_scope.lookup(var_name, current_scope_only=True):
-            raise Exception(
+            raise SemanticError(
                 "Error: Duplicate identifier '%s' found" % var_name
             )
 
         self.current_scope.insert(var_symbol)
+
+    def visit_IncludeLibrary(self, node):
+        functions = get_all_module_func('interpreter.__builtins__.{}'.format(
+            node.library_name
+        ))
+
+        type_symbol = self.current_scope.lookup('builtins')
+        for func_name in functions:
+            func_symbol = FunctionSymbol(func_name, type=type_symbol)
+            self.current_scope.insert(func_symbol)
+
 
     def visit_FunctionDecl(self, node):
         type_name = node.type_node.value
@@ -48,14 +59,12 @@ class SemanticAnalyzer(NodeVisitor):
 
         func_name = node.func_name
         if self.current_scope.lookup(func_name):
-            raise Exception(
+            raise SemanticError(
                 "Error: Duplicate identifier '%s' found" % func_name
             )
         func_symbol = FunctionSymbol(func_name, type=type_symbol)
         self.current_scope.insert(func_symbol)
 
-        # print('ENTER scope: %s' % func_name)
-        # Scope for parameters and local variables
         procedure_scope = ScopedSymbolTable(
             scope_name=func_name,
             scope_level=self.current_scope.scope_level + 1,
@@ -63,21 +72,12 @@ class SemanticAnalyzer(NodeVisitor):
         )
         self.current_scope = procedure_scope
 
-        # Insert parameters into the procedure scope
         for param in node.params:
             func_symbol.params.append(self.visit(param))
-            # param_type = self.current_scope.lookup(param.type_node.value)
-            # param_name = param.var_node.value
-            # var_symbol = VarSymbol(param_name, param_type)
-            # self.current_scope.insert(var_symbol)
-            # func_symbol.params.append(var_symbol)
 
         self.visit(node.body)
 
-        # print(procedure_scope)
-
         self.current_scope = self.current_scope.enclosing_scope
-        # print('LEAVE scope: %s' % func_name)
 
     def visit_Param(self, node):
         type_name = node.type_node.value
@@ -87,7 +87,7 @@ class SemanticAnalyzer(NodeVisitor):
         var_symbol = VarSymbol(var_name, type_symbol)
 
         if self.current_scope.lookup(var_name, current_scope_only=True):
-            raise Exception(
+            raise SemanticError(
                 "Error: Duplicate identifier '%s' found" % var_name
             )
 
@@ -113,8 +113,8 @@ class SemanticAnalyzer(NodeVisitor):
         var_name = node.value
         var_symbol = self.current_scope.lookup(var_name)
         if var_symbol is None:
-            raise Exception(
-                "Error: Symbol(identifier) not found '%s'" % var_name
+            raise SemanticError(
+                "Symbol(identifier) not found '%s'" % var_name
             )
 
     def visit_Type(self, node):
@@ -142,17 +142,17 @@ class SemanticAnalyzer(NodeVisitor):
         func_name = node.func_name
         func_symbol = self.current_scope.lookup(func_name)
         if func_symbol is None:
-            raise Exception(
+            raise SemanticError(
                 "Function '%s' not found" % func_name
             )
 
         if not isinstance(func_symbol, FunctionSymbol):
-            raise Exception(
+            raise SemanticError(
                 "Identifier '%s' cannot be used as a function" % func_name
             )
 
-        if len(node.params) != len(func_symbol.params):
-            raise Exception(
+        if len(node.params) != len(func_symbol.params) and func_symbol.type.name != 'builtins':
+            raise SemanticError(
                 "Function {} takes {} positional arguments but {} were given".format(
                     func_name,
                     len(node.params),
@@ -164,7 +164,4 @@ class SemanticAnalyzer(NodeVisitor):
     @staticmethod
     def analyze(tree):
         semantic_analyzer = SemanticAnalyzer()
-        try:
-            semantic_analyzer.visit(tree)
-        except Exception as e:
-            raise e
+        semantic_analyzer.visit(tree)

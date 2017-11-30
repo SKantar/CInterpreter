@@ -128,7 +128,7 @@ class LexerTestCase(unittest.TestCase):
         """)
         parser.parse()
 
-    def test_function_include(self):
+    def test_include(self):
         parser = self.makeParser("""
             #include <stdio.h>
             int a = 2, b = 2;
@@ -146,12 +146,13 @@ class LexerTestCase(unittest.TestCase):
                 }else{
                     b = 1;
                 }
-                return test(1, 3);
+                test(1, 3);
+                return 0;
             }
         """)
         parser.parse()
 
-    def test_function_include(self):
+    def test_builtin_functions(self):
         parser = self.makeParser("""
             #include <stdio.h>
             int a = 2, b = 2;
@@ -164,13 +165,40 @@ class LexerTestCase(unittest.TestCase):
             int main(int a, int b){
                 int a;
                 a = 2 + 3;
+                scanf("%d", &a);
                 if(a + 2) 
                     a = 3 - 1;
-                    a = 2;
                 else
                     b = 1;
                 
-                return test(1, 3);
+                printf("%d", test(1, 3));
+                return 0;
+            }
+        """)
+        parser.parse()
+
+    def test_error(self):
+        parser = self.makeParser("""
+            #include <stdio.h>
+            int a = 2, b = 2;
+            int b;
+
+            int test(int a, int b){
+                return a + b;
+            }
+
+            int main(int a, int b){
+                int a;
+                a = 2 + 3;
+                scanf("%d", &a);
+                if(a + 2) 
+                    a = 3 - 1;
+                    b = 2;
+                else
+                    b = 1;
+
+                printf("%d", test(1, 3));
+                return 0;
             }
         """)
         self.assertRaises(SyntaxError, parser.parse)

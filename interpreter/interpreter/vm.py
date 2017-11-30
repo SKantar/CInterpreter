@@ -1,10 +1,10 @@
 from .memory import *
-from ..syntax_analysis.tree import NodeVisitor, FunctionDecl
 from interpreter.lexical_analysis.lexer import Lexer
 from interpreter.lexical_analysis.token_type import *
 from interpreter.syntax_analysis.parser import Parser
 from interpreter.syntax_analysis.tree import *
 from interpreter.semantic_analysis.analyzer import SemanticAnalyzer
+from ..utils.utils import import_module
 
 class Interpreter(NodeVisitor):
 
@@ -15,8 +15,18 @@ class Interpreter(NodeVisitor):
         for node in filter(lambda o: isinstance(o, FunctionDecl), tree.children):
             self.memory[node.func_name] = node
 
+    def load_libraries(self, tree):
+        for node in filter(lambda o: isinstance(o, IncludeLibrary), tree.children):
+            lib = import_module('interpreter.__builtins__.{}'.format(
+                node.library_name
+            ))
+
+            for attr in dir(lib):
+                if not attr.startswith('__'):
+                    self.memory[attr] = getattr(lib, attr)
+
     def visit_Program(self, node):
-        for var in filter(lambda self: not isinstance(self, FunctionDecl), node.children):
+        for var in filter(lambda self: not isinstance(self, (FunctionDecl, IncludeLibrary)), node.children):
             self.visit(var)
 
     def visit_VarDecl(self, node):
@@ -50,13 +60,17 @@ class Interpreter(NodeVisitor):
     def visit_FunctionCall(self, node):
 
         params = [self.visit(param) for param in node.params]
-        self.memory.create_frame(node.func_name)
 
-        for i, param in enumerate(params):
-            self.memory[i] = param
-        res = self.visit(self.memory[node.func_name])
-        self.memory.remove_frame()
-        return res
+        if isinstance(self.memory[node.func_name], Node):
+            self.memory.create_frame(node.func_name)
+
+            for i, param in enumerate(params):
+                self.memory[i] = param
+            res = self.visit(self.memory[node.func_name])
+            self.memory.remove_frame()
+            return res
+        else:
+            return self.memory[node.func_name](*params)
 
     def visit_FunctionDecl(self, node):
         for i, param in enumerate(node.params):
@@ -75,6 +89,9 @@ class Interpreter(NodeVisitor):
     def visit_Var(self, node):
         return self.memory[node.value]
 
+    def visit_String(self, node):
+        return node.value
+
     def visit_IfStmt(self, node):
         if self.visit(node.condition_stmt):
             self.visit(node.if_body)
@@ -83,6 +100,7 @@ class Interpreter(NodeVisitor):
 
 
     def interpret(self, tree):
+        self.load_libraries(tree)
         self.load_functions(tree)
         self.visit(tree)
         self.memory.create_frame('main')

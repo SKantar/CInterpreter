@@ -87,6 +87,7 @@ class LexerTestCase(unittest.TestCase):
             ('#', HASH, '#'),
             ('<', LESS_THAN, '<'),
             ('>', GREATER_THAN, '>'),
+            ('"String"', STRING, 'String'),
         )
 
         for text, tok_type, tok_val in check_records:

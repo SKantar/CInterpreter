@@ -7,9 +7,10 @@ class InterpreterTestCase(unittest.TestCase):
         return Interpreter.run(text)
 
     def test_analyzer(self):
-        print( self.interpret("""
+        self.interpret("""
+            #include <stdio.h>
             int test(int a){
-                return a;
+                printf("%d", a);
             }
             int b = 1 + 2;
 
@@ -24,7 +25,7 @@ class InterpreterTestCase(unittest.TestCase):
                {
                     c = -2;
                }
-               
-               return test(b + c + 3);
+               printf("%.2f", test(b + c + 3));
+               return 0;
             }
-        """))
+        """)

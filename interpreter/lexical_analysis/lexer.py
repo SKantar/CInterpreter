@@ -55,6 +55,20 @@ class Lexer(object):
             self.advance()
         return int(result)
 
+    def string(self):
+        """ Return a (multidigit) integer consumed from the input. """
+        result = ''
+        self.advance()
+        while self.current_char is not '"':
+            if self.current_char is None:
+               self.error(
+                    message='Unfinished string with \'"\'at line {}'.format(self.line)
+                )
+            result += self.current_char
+            self.advance()
+        self.advance()
+        return result
+
     def _id(self):
         """ Handle identifiers and reserved keywords """
         result = ''
@@ -82,6 +96,9 @@ class Lexer(object):
 
             if self.current_char.isdigit():
                 return Token(INT_NUMBER, self.integer())
+
+            if self.current_char == '"':
+                return Token(STRING, self.string())
 
             if self.current_char == '=':
                 self.advance()
@@ -142,6 +159,10 @@ class Lexer(object):
             if self.current_char == '>':
                 self.advance()
                 return Token(GREATER_THAN, '>')
+
+            if self.current_char == '&':
+                self.advance()
+                return Token(AMPERSAND, '&')
 
             self.error()
 

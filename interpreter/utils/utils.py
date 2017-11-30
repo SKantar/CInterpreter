@@ -1,14 +1,13 @@
 from functools import wraps
 import pickle
+import importlib
 
-def multi(fn):
-    @wraps(fn)
-    def wrapper(*args, **kwargs):
-        res = fn(*args, **kwargs)
-        if not isinstance(res, list):
-            return [res]
-        return res
-    return wrapper
+def import_module(libname):
+    return importlib.import_module(libname)
+
+def get_all_module_func(libname):
+    lib = import_module(libname)
+    return [func for func in dir(lib) if not func.startswith('__')]
 
 def restorable(fn):
     @wraps(fn)
@@ -18,26 +17,3 @@ def restorable(fn):
         self.__dict__ = pickle.loads(state)
         return result
     return wrapper
-
-if __name__ == '__main__':
-
-    class B(object):
-        def __init__(self):
-            self.b = 3
-
-
-    class A(object):
-        def __init__(self):
-            self.a = 1
-            self.b = B()
-
-        @restorable
-        def check(self):
-            self.a = 2
-            self.b.b = 4
-
-
-    a = A()
-    print(a.a, a.b.b)
-    a.check()
-    print(a.a, a.b.b)

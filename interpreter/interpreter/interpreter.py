@@ -56,6 +56,8 @@ class Interpreter(NodeVisitor):
             return +self.visit(node.expr)
         elif op == MINUS:
             return -self.visit(node.expr)
+        elif op == AMPERSAND:
+            return node.expr.value
 
     def visit_FunctionCall(self, node):
 
@@ -70,7 +72,7 @@ class Interpreter(NodeVisitor):
             self.memory.remove_frame()
             return res
         else:
-            return self.memory[node.func_name](*params)
+            return self.memory[node.func_name](*params, memory=self.memory)
 
     def visit_FunctionDecl(self, node):
         for i, param in enumerate(node.params):

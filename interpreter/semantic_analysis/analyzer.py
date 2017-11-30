@@ -135,6 +135,9 @@ class SemanticAnalyzer(NodeVisitor):
     def visit_Num(self, node):
         pass
 
+    def visit_String(self, node):
+        pass
+
     def visit_NoOp(self, node):
         pass
 
@@ -160,6 +163,8 @@ class SemanticAnalyzer(NodeVisitor):
                 )
             )
 
+        for param in node.params:
+            self.visit(param)
 
     @staticmethod
     def analyze(tree):

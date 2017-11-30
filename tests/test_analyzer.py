@@ -22,6 +22,7 @@ class SemanticAnalyzerTestCase(unittest.TestCase):
             int main(int a){
                 int b;
                 int c = a + b;
+                scanf("%d %d", &a, &d);
                 
                 if(a + 5){
                     c = 2;
@@ -29,7 +30,7 @@ class SemanticAnalyzerTestCase(unittest.TestCase):
                     b = 2;
                 }
                 
-                int r = test(2);
+                int r = test(d);
                 printf("%d", c + 2);
                 return 0;
             }

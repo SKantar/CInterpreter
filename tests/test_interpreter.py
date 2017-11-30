@@ -3,14 +3,16 @@ import unittest
 
 class InterpreterTestCase(unittest.TestCase):
     def interpret(self, text):
-        from interpreter.interpreter.vm import Interpreter
+        from interpreter.interpreter.interpreter import Interpreter
         return Interpreter.run(text)
 
     def test_analyzer(self):
         self.interpret("""
             #include <stdio.h>
+            
             int test(int a){
                 printf("%d", a);
+                return a;
             }
             int b = 1 + 2;
 

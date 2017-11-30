@@ -1,2 +1,2 @@
 from . import memory
-from . import vm
+from . import interpreter

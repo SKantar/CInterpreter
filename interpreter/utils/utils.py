@@ -1,13 +1,5 @@
 from functools import wraps
 import pickle
-import importlib
-
-def import_module(libname):
-    return importlib.import_module(libname)
-
-def get_all_module_func(libname):
-    lib = import_module(libname)
-    return [func for func in dir(lib) if not func.startswith('__')]
 
 def restorable(fn):
     @wraps(fn)

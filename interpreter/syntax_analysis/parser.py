@@ -334,6 +334,7 @@ class Parser(object):
         """
         factor                      : PLUS factor
                                     | MINUS factor
+                                    | AMPERSAND variable
                                     | INT_NUMBER
                                     | LPAREN expr RPAREN
                                     | variable
@@ -438,6 +439,7 @@ class Parser(object):
 
         factor                      : PLUS factor
                                     | MINUS factor
+                                    | AMPERSAND variable
                                     | INT_NUMBER
                                     | LPAREN expr RPAREN
                                     | variable

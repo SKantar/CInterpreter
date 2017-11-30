@@ -1,6 +1,6 @@
 from interpreter.interpreter.interpreter import Interpreter
 import argparse
-from interpreter.utils.utils import MessageColor
+
 
 parser = argparse.ArgumentParser(description='Execute .c file')
 parser.add_argument('-f', '--file', help='File with C code')
@@ -19,7 +19,4 @@ if args.file:
         code = file.read()
 else:
     code = args.code
-
-status = Interpreter.run(code)
-print()
-print(MessageColor.OKBLUE +"Process terminated with status {}".format(status)+ MessageColor.ENDC)
+Interpreter.run(code)

@@ -1,9 +1,22 @@
+"""
+This module file supports basic functions from stdio.h library
+"""
+
 def printf(*args, memory=None):
+    """ basic printf function
+    example:
+        printf("%d %d", 1, 2);
+    """
     fmt, *params = args
     fmt = fmt.replace('\\n', '\n')
     print(fmt % tuple(params), end='')
 
 def scanf(*args, memory=None):
+    """ basic printf function
+        example:
+            scanf("%d %d", 'a', 'b');
+        """
+
     import re
     def cast(flag):
         if flag[-1] == 'd':

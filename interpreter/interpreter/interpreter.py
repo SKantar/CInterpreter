@@ -4,7 +4,7 @@ from ..lexical_analysis.token_type import *
 from ..syntax_analysis.parser import Parser
 from ..syntax_analysis.tree import *
 from ..semantic_analysis.analyzer import SemanticAnalyzer
-from ..utils.utils import import_module
+from ..utils.utils import import_module, MessageColor
 
 class Interpreter(NodeVisitor):
 
@@ -113,10 +113,21 @@ class Interpreter(NodeVisitor):
 
     @staticmethod
     def run(program):
-        lexer = Lexer(program)
-        parser = Parser(lexer)
-        tree = parser.parse()
-        SemanticAnalyzer.analyze(tree)
-        return Interpreter().interpret(tree)
+        try:
+            lexer = Lexer(program)
+            parser = Parser(lexer)
+            tree = parser.parse()
+            SemanticAnalyzer.analyze(tree)
+            status = Interpreter().interpret(tree)
+        except Exception as message:
+            print("{}[{}] {} {}".format(
+                MessageColor.FAIL,
+                type(message).__name__,
+                message,
+                MessageColor.ENDC
+            ))
+            status = -1
+        print()
+        print(MessageColor.OKBLUE + "Process terminated with status {}".format(status) + MessageColor.ENDC)
 
 

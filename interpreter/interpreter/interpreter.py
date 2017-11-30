@@ -1,9 +1,9 @@
 from .memory import *
-from interpreter.lexical_analysis.lexer import Lexer
-from interpreter.lexical_analysis.token_type import *
-from interpreter.syntax_analysis.parser import Parser
-from interpreter.syntax_analysis.tree import *
-from interpreter.semantic_analysis.analyzer import SemanticAnalyzer
+from ..lexical_analysis.lexer import Lexer
+from ..lexical_analysis.token_type import *
+from ..syntax_analysis.parser import Parser
+from ..syntax_analysis.tree import *
+from ..semantic_analysis.analyzer import SemanticAnalyzer
 from ..utils.utils import import_module
 
 class Interpreter(NodeVisitor):

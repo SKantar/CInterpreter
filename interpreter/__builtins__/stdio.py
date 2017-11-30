@@ -1,6 +1,7 @@
 def printf(*args, memory=None):
     fmt, *params = args
-    print(fmt % tuple(params))
+    fmt = fmt.replace('\\n', '\n')
+    print(fmt % tuple(params), end='')
 
 def scanf(*args, memory=None):
     import re

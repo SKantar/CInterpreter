@@ -1,6 +1,5 @@
 import unittest
 
-
 class InterpreterTestCase(unittest.TestCase):
     def interpret(self, text):
         from interpreter.interpreter.interpreter import Interpreter

@@ -93,6 +93,8 @@ class LexerTestCase(unittest.TestCase):
             ('==', EQ, '=='),
             ('!=', NE, '!='),
             ('!', NOT, '!'),
+            ('&&', AND, '&&'),
+            ('||', OR, '||'),
             ('"String"', STRING, 'String'),
         )
 

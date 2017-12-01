@@ -27,3 +27,5 @@ EQ = 'EQ'           # ==
 NOT = 'NOT'         # !
 STRING = 'STRING'
 AMPERSAND = 'AMPERSAND'
+AND = 'AND'
+OR = 'OR'

@@ -47,7 +47,7 @@ class Parser(object):
         while self.current_token.type in [TYPE, HASH]:
             if self.current_token.type == HASH:
                 declarations.append(self.include_library())
-            elif self.check_function(declaration=True):
+            elif self.check_function(with_declaration=True):
                 declarations.append(self.function_declaration())
             else:
                 declarations.extend(self.var_declaration_list())
@@ -67,7 +67,7 @@ class Parser(object):
             )
 
         self.eat(ID)
-        self.eat(LESS_THAN)
+        self.eat(LT)
         token = self.current_token
         self.eat(ID)
         self.eat(DOT)
@@ -77,7 +77,7 @@ class Parser(object):
                 'You can include only *.h files [line {}]'.format(self.lexer.line)
             )
         self.eat(ID)
-        self.eat(GREATER_THAN)
+        self.eat(GT)
         return IncludeLibrary(
             library_name=token.value
         )
@@ -110,7 +110,7 @@ class Parser(object):
 
     def function_body(self):
         """
-        function_body               : LBRACKET statement_list<declaration=True> RBRACKET
+        function_body               : LBRACKET statement_list<allow_declaration=True> RBRACKET
         """
         self.eat(LBRACKET)
         node = Body(self.statement_list(allow_declaration=True))
@@ -174,7 +174,7 @@ class Parser(object):
 
     def block(self):
         """
-        block                       : LBRACKET statement_list RBRACKET
+        block                       : LBRACKET statement_list<allow_declaration=True> RBRACKET
         """
         self.eat(LBRACKET)
         node = Block(self.statement_list(allow_declaration=True))
@@ -184,7 +184,7 @@ class Parser(object):
     def stmt_body(self):
         """
         stmt_body                   : statement
-                                    | LBRACKET statement_list RBRACKET
+                                    | LBRACKET statement_list<allow_declaration=False> RBRACKET
         """
         if self.current_token.type == LBRACKET:
             self.eat(LBRACKET)
@@ -277,6 +277,27 @@ class Parser(object):
         )
 
     def expr(self):
+        node = self.logic_expr()
+        while self.current_token.type in (AND, OR):
+            token = self.current_token
+            self.eat(self.current_token.type)
+            node = BinOp(left=node, op=token, right=self.logic_expr())
+        return node
+
+    def logic_expr(self):
+        node = self.arithm_expr()
+
+        if self.current_token.type in (LE, LT, GE, GT, EQ, NE):
+            token = self.current_token
+            self.eat(self.current_token.type)
+            return BinOp(
+                left=node,
+                op=token,
+                right=self.arithm_expr()
+            )
+        return node
+
+    def arithm_expr(self):
         """
         expr                        : term ((PLUS | MINUS) term)*
         """
@@ -284,11 +305,7 @@ class Parser(object):
 
         while self.current_token.type in (PLUS, MINUS):
             token = self.current_token
-            if token.type == PLUS:
-                self.eat(PLUS)
-            elif token.type == MINUS:
-                self.eat(MINUS)
-
+            self.eat(token.type)
             node = BinOp(left=node, op=token, right=self.term())
 
         return node
@@ -408,7 +425,7 @@ class Parser(object):
 
         function_declaration        : type_spec ID LPAREN parameters RPAREN function_body
 
-        function_body               : LBRACKET statement_list<declaration=True> RBRACKET
+        function_body               : LBRACKET statement_list<allow_declaration=True> RBRACKET
 
         parameters                  : empty
                                     | type_spec variable (COMMA type_spec variable)*
@@ -417,10 +434,10 @@ class Parser(object):
 
         var_initialization          : (ASSIGN expr)?
 
-        block                       : LBRACKET statement_list<declaration=True> RBRACKET
+        block                       : LBRACKET statement_list<allow_declaration=True> RBRACKET
 
         stmt_body                   : statement
-                                    | LBRACKET statement_list<declaration=False> RBRACKET
+                                    | LBRACKET statement_list<allow_declaration=False> RBRACKET
 
         statement_list              : var_declaration_list
                                     | statement

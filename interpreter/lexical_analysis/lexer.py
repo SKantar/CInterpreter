@@ -136,6 +136,20 @@ class Lexer(object):
                 self.advance()
                 return Token(NOT, '!')
 
+            if self.current_char == '&' and self.peek() == '&':
+                self.advance()
+                self.advance()
+                return Token(AND, '&&')
+
+            if self.current_char == '&':
+                self.advance()
+                return Token(AMPERSAND, '&')
+
+            if self.current_char == '|' and self.peek() == '|':
+                self.advance()
+                self.advance()
+                return Token(OR, '||')
+
             if self.current_char == ';':
                 self.advance()
                 return Token(SEMICOLON, ';')
@@ -184,9 +198,7 @@ class Lexer(object):
                 self.advance()
                 return Token(HASH, '#')
 
-            if self.current_char == '&':
-                self.advance()
-                return Token(AMPERSAND, '&')
+
 
             self.error(
                 message="Invalid char {} at line {}".format(self.current_char, self.line)

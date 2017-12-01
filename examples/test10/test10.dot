@@ -1,0 +1,181 @@
+digraph astgraph {
+  node [shape=circle, fontsize=12, fontname="Courier", height=.1];
+  ranksep=.3;
+  edge [arrowsize=.5]
+
+  node1 [label="Program"]
+  node2 [label="Include:stdio"]
+  node1 -> node2
+  node3 [label="VarDecl"]
+  node4 [label="a"]
+  node3 -> node4
+  node5 [label="int"]
+  node3 -> node5
+  node1 -> node3
+  node6 [label="="]
+  node7 [label="a"]
+  node6 -> node7
+  node8 [label="2"]
+  node6 -> node8
+  node1 -> node6
+  node9 [label="VarDecl"]
+  node10 [label="b"]
+  node9 -> node10
+  node11 [label="int"]
+  node9 -> node11
+  node1 -> node9
+  node12 [label="="]
+  node13 [label="b"]
+  node12 -> node13
+  node14 [label="2"]
+  node12 -> node14
+  node1 -> node12
+  node15 [label="VarDecl"]
+  node16 [label="b"]
+  node15 -> node16
+  node17 [label="int"]
+  node15 -> node17
+  node1 -> node15
+  node18 [label="FunctionDecl:test"]
+  node19 [label="Param"]
+  node20 [label="a"]
+  node19 -> node20
+  node21 [label="int"]
+  node19 -> node21
+  node18 -> node19
+  node22 [label="Param"]
+  node23 [label="b"]
+  node22 -> node23
+  node24 [label="int"]
+  node22 -> node24
+  node18 -> node22
+  node25 [label="Body"]
+  node26 [label="ReturnStmt"]
+  node27 [label="+"]
+  node28 [label="a"]
+  node29 [label="b"]
+  node27 -> node28
+  node27 -> node29
+  node26 -> node27
+  node25 -> node26
+  node18 -> node25
+  node1 -> node18
+  node30 [label="FunctionDecl:main"]
+  node31 [label="Param"]
+  node32 [label="a"]
+  node31 -> node32
+  node33 [label="int"]
+  node31 -> node33
+  node30 -> node31
+  node34 [label="Param"]
+  node35 [label="b"]
+  node34 -> node35
+  node36 [label="int"]
+  node34 -> node36
+  node30 -> node34
+  node37 [label="Body"]
+  node38 [label="VarDecl"]
+  node39 [label="a"]
+  node38 -> node39
+  node40 [label="int"]
+  node38 -> node40
+  node37 -> node38
+  node41 [label="="]
+  node42 [label="a"]
+  node41 -> node42
+  node43 [label="+"]
+  node44 [label="2"]
+  node45 [label="3"]
+  node43 -> node44
+  node43 -> node45
+  node41 -> node43
+  node37 -> node41
+  node46 [label="IfStmt"]
+  node47 [label="||"]
+  node48 [label="&&"]
+  node49 [label="<"]
+  node50 [label="+"]
+  node51 [label="a"]
+  node52 [label="2"]
+  node50 -> node51
+  node50 -> node52
+  node53 [label="5"]
+  node49 -> node50
+  node49 -> node53
+  node54 [label=">"]
+  node55 [label="2"]
+  node56 [label="5"]
+  node54 -> node55
+  node54 -> node56
+  node48 -> node49
+  node48 -> node54
+  node57 [label="-"]
+  node58 [label="3"]
+  node59 [label="1"]
+  node57 -> node58
+  node57 -> node59
+  node47 -> node48
+  node47 -> node57
+  node46 -> node47 [label="condition"]
+  node60 [label="Body"]
+  node61 [label="="]
+  node62 [label="a"]
+  node61 -> node62
+  node63 [label="-"]
+  node64 [label="3"]
+  node65 [label="1"]
+  node63 -> node64
+  node63 -> node65
+  node61 -> node63
+  node60 -> node61
+  node46 -> node60 [label="IF block"]
+  node66 [label="Body"]
+  node67 [label="="]
+  node68 [label="b"]
+  node67 -> node68
+  node69 [label="1"]
+  node67 -> node69
+  node66 -> node67
+  node46 -> node66 [label="ELSE block"]
+  node37 -> node46
+  node70 [label="IfStmt"]
+  node71 [label="-"]
+  node72 [label="a"]
+  node73 [label="5"]
+  node71 -> node72
+  node71 -> node73
+  node70 -> node71 [label="condition"]
+  node74 [label="Body"]
+  node75 [label="="]
+  node76 [label="a"]
+  node75 -> node76
+  node77 [label="2"]
+  node75 -> node77
+  node74 -> node75
+  node70 -> node74 [label="IF block"]
+  node78 [label="Body"]
+  node79 [label="="]
+  node80 [label="b"]
+  node79 -> node80
+  node81 [label="3"]
+  node79 -> node81
+  node78 -> node79
+  node70 -> node78 [label="ELSE block"]
+  node37 -> node70
+  node82 [label="FunctionCall:printf"]
+  node83 [label="String:%d"]
+  node82 -> node83 [label="Param00"]
+  node84 [label="FunctionCall:test"]
+  node85 [label="1"]
+  node84 -> node85 [label="Param00"]
+  node86 [label="3"]
+  node84 -> node86 [label="Param01"]
+  node82 -> node84 [label="Param01"]
+  node37 -> node82
+  node87 [label="ReturnStmt"]
+  node88 [label="0"]
+  node87 -> node88
+  node37 -> node87
+  node30 -> node37
+  node1 -> node30
+}

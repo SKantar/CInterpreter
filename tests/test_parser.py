@@ -96,7 +96,7 @@ class LexerTestCase(unittest.TestCase):
             int main(int a, int b){
                 int a;
                 a = 2 + 3;
-                if(a + 2) {
+                if(a + 2 > 2) {
                     a = 3 - 1;
                 }else{
                     b = 2;

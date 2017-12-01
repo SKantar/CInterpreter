@@ -44,8 +44,22 @@ class Interpreter(NodeVisitor):
             return self.visit(node.left) - self.visit(node.right)
         elif node.op.type == MUL:
             return self.visit(node.left) * self.visit(node.right)
-        elif node.op.type == DIV:
-            return self.visit(node.left) / self.visit(node.right)
+        elif node.op.type == LT:
+            return self.visit(node.left) < self.visit(node.right)
+        elif node.op.type == GT:
+            return self.visit(node.left) > self.visit(node.right)
+        elif node.op.type == LE:
+            return self.visit(node.left) <= self.visit(node.right)
+        elif node.op.type == GE:
+            return self.visit(node.left) >= self.visit(node.right)
+        elif node.op.type == EQ:
+            return self.visit(node.left) == self.visit(node.right)
+        elif node.op.type == NE:
+            return self.visit(node.left) != self.visit(node.right)
+        elif node.op.type == AND:
+            return self.visit(node.left) and self.visit(node.right)
+        elif node.op.type == OR:
+            return self.visit(node.left) or self.visit(node.right)
 
     def visit_Num(self, node):
         return node.value
@@ -58,6 +72,8 @@ class Interpreter(NodeVisitor):
             return -self.visit(node.expr)
         elif op == AMPERSAND:
             return node.expr.value
+        elif op == NOT:
+            return int(not bool(self.visit(node.expr)))
 
     def visit_FunctionCall(self, node):
 

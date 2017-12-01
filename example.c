@@ -1,4 +1,4 @@
-
+#include <stdio.h>
 int test(int a){
     printf("%d\n", a);
     return a;
@@ -9,8 +9,8 @@ int main(){
    int a = 2;
    int c = a + 3 - 1;
    scanf("%d %d", &a, &b);
-   if(5){
-        @ = 1;
+   if(5 + 3 > 6){
+        c = 1;
         c = c + 1;
    }
    else

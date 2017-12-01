@@ -337,6 +337,7 @@ class Parser(object):
         """
         factor                      : PLUS factor
                                     | MINUS factor
+                                    | NOT factor
                                     | AMPERSAND variable
                                     | INT_NUMBER
                                     | LPAREN expr RPAREN
@@ -349,6 +350,9 @@ class Parser(object):
             return UnaryOp(token, self.factor())
         elif token.type == MINUS:
             self.eat(MINUS)
+            return UnaryOp(token, self.factor())
+        elif token.type == NOT:
+            self.eat(NOT)
             return UnaryOp(token, self.factor())
         elif token.type == AMPERSAND:
             self.eat(AMPERSAND)

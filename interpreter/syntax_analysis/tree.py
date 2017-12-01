@@ -99,6 +99,11 @@ class IfStmt(Node):
         self.if_body = if_body
         self.else_body = else_body
 
+class WhileStmt(Node):
+    def __init__(self, condition, body):
+        self.condition_stmt = condition
+        self.body = body
+
 
 class ReturnStmt(Node):
     def __init__(self, expr):

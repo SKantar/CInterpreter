@@ -229,6 +229,8 @@ class Parser(object):
                 node = self.assignment_statement()
         elif self.current_token.type == IF:
             node = self.if_statement()
+        elif self.current_token.type == WHILE:
+            node = self.while_statement()
         elif self.current_token.type == RETURN:
             node = self.return_statement()
         else:
@@ -274,6 +276,20 @@ class Parser(object):
             condition=cond_node,
             if_body=if_body,
             else_body=else_body
+        )
+
+    def while_statement(self):
+        """
+        while_statement             : WHILE LPAREN expr RPAREN stmt_body
+        """
+        self.eat(WHILE)
+        self.eat(LPAREN)
+        cond_node = self.expr()
+        self.eat(RPAREN)
+        body = self.stmt_body()
+        return WhileStmt(
+            condition=cond_node,
+            body=body
         )
 
     def expr(self):
@@ -464,6 +480,8 @@ class Parser(object):
         return_statement            : RETURN expr SEMICOLON
 
         if_statement                : IF LPAREN expr RPAREN stmt_body (ELSE stmt_body)?
+
+        while_statement             : WHILE LPAREN expr RPAREN stmt_body
 
         expr                        : logic_expr ((AND | OR) logic_expr)*
 

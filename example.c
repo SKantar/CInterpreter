@@ -17,6 +17,13 @@ int main(){
    {
         c = -2;
    }
+   int i = 0;
+
+   while(i < 10){
+      printf("%d\n", i);
+      i = i + 1;
+   }
+
    printf("%.2f", test(b + c + 3));
    return 0;
 }

@@ -5,6 +5,7 @@ from .token import Token
 RESERVED_KEYWORDS = {
     'int': Token(TYPE, 'int'),
     'if': Token(IF, 'if'),
+    'while': Token(WHILE, 'while'),
     'else': Token(ELSE, 'else'),
     'return': Token(RETURN, 'return'),
 }

@@ -116,6 +116,9 @@ class Interpreter(NodeVisitor):
         else:
             self.visit(node.else_body)
 
+    def visit_WhileStmt(self, node):
+        while self.visit(node.condition_stmt):
+            self.visit(node.body)
 
     def interpret(self, tree):
         self.load_libraries(tree)

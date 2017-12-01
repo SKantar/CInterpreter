@@ -129,6 +129,10 @@ class SemanticAnalyzer(NodeVisitor):
         self.visit(node.if_body)
         self.visit(node.else_body)
 
+    def visit_WhileStmt(self, node):
+        self.visit(node.condition_stmt)
+        self.visit(node.body)
+
     def visit_ReturnStmt(self, node):
         self.visit(node.expr)
 

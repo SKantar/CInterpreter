@@ -18,7 +18,12 @@ SEMICOLON = 'SEMICOLON'
 EOF = 'EOF'         # EOF (end-of-file) token is used to indicate that there is no more input left for lexical analysis
 RETURN = 'RETURN'
 HASH = 'HASH'
-LESS_THAN = 'LESS_THAN'
-GREATER_THAN = 'GREATER_THAN'
+LT = 'LT'           # <
+GT = 'GT'           # >
+LE = 'LE'           # <=
+GE = 'GE'           # >=
+NE = 'NE'           # !=
+EQ = 'EQ'           # ==
+NOT = 'NOT'         # !
 STRING = 'STRING'
 AMPERSAND = 'AMPERSAND'

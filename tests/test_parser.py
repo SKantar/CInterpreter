@@ -3,6 +3,7 @@ from interpreter.lexical_analysis.lexer import Lexer
 from interpreter.syntax_analysis.parser import Parser
 from interpreter.syntax_analysis.parser import SyntaxError
 from interpreter.syntax_analysis.tree import *
+
 class LexerTestCase(unittest.TestCase):
     def makeParser(self, text):
         lexer = Lexer(text)

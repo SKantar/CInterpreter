@@ -1,4 +1,3 @@
-#include <stdio.h>
 
 int test(int a){
     printf("%d\n", a);
@@ -11,7 +10,7 @@ int main(){
    int c = a + 3 - 1;
    scanf("%d %d", &a, &b);
    if(5){
-        c = 1;
+        @ = 1;
         c = c + 1;
    }
    else

@@ -1,5 +1,4 @@
 """ SCI - Simple C Interpreter """
-
 from .token_type import *
 from .token import Token
 
@@ -9,6 +8,7 @@ RESERVED_KEYWORDS = {
     'else': Token(ELSE, 'else'),
     'return': Token(RETURN, 'return'),
 }
+
 
 class LexicalError(Exception):
     pass
@@ -21,8 +21,8 @@ class Lexer(object):
         self.current_char = self.text[self.pos]
         self.line = 1
 
-    def error(self, message=None):
-        raise LexicalError(not message and 'Invalid character' or message)
+    def error(self, message='Invalid character'):
+        raise LexicalError(message)
 
     def advance(self):
         """ Advance the `pos` pointer and set the `current_char` variable. """
@@ -61,7 +61,7 @@ class Lexer(object):
         self.advance()
         while self.current_char is not '"':
             if self.current_char is None:
-               self.error(
+                self.error(
                     message='Unfinished string with \'"\'at line {}'.format(self.line)
                 )
             result += self.current_char
@@ -79,7 +79,7 @@ class Lexer(object):
         token = RESERVED_KEYWORDS.get(result, Token(ID, result))
         return token
 
-
+    @property
     def get_next_token(self):
         """ Lexical analyzer (also known as scanner or tokenizer)
         This method is responsible for breaking a sentence
@@ -100,9 +100,41 @@ class Lexer(object):
             if self.current_char == '"':
                 return Token(STRING, self.string())
 
+            if self.current_char == '<' and self.peek() == '=':
+                self.advance()
+                self.advance()
+                return Token(LE, '<=')
+
+            if self.current_char == '<':
+                self.advance()
+                return Token(LT, '<')
+
+            if self.current_char == '>' and self.peek() == '=':
+                self.advance()
+                self.advance()
+                return Token(GE, '>=')
+
+            if self.current_char == '>':
+                self.advance()
+                return Token(GT, '>')
+
+            if self.current_char == '=' and self.peek() == '=':
+                self.advance()
+                self.advance()
+                return Token(EQ, '==')
+
             if self.current_char == '=':
                 self.advance()
                 return Token(ASSIGN, '=')
+
+            if self.current_char == '!' and self.peek() == '=':
+                self.advance()
+                self.advance()
+                return Token(NE, '!=')
+
+            if self.current_char == '!':
+                self.advance()
+                return Token(NOT, '!')
 
             if self.current_char == ';':
                 self.advance()
@@ -152,18 +184,12 @@ class Lexer(object):
                 self.advance()
                 return Token(HASH, '#')
 
-            if self.current_char == '<':
-                self.advance()
-                return Token(LESS_THAN, '<')
-
-            if self.current_char == '>':
-                self.advance()
-                return Token(GREATER_THAN, '>')
-
             if self.current_char == '&':
                 self.advance()
                 return Token(AMPERSAND, '&')
 
-            self.error()
+            self.error(
+                message="Invalid char {} at line {}".format(self.current_char, self.line)
+            )
 
         return Token(EOF, None)

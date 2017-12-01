@@ -11,7 +11,7 @@ class SyntaxError(Exception):
 class Parser(object):
     def __init__(self, lexer):
         self.lexer = lexer
-        self.current_token = self.lexer.get_next_token()        # set current token to the first token taken from the input
+        self.current_token = self.lexer.get_next_token  # set current token to the first token taken from the input
 
     def error(self, message):
         raise SyntaxError(message)
@@ -23,7 +23,7 @@ class Parser(object):
         otherwise raise an exception. """
 
         if self.current_token.type == token_type:
-            self.current_token = self.lexer.get_next_token()
+            self.current_token = self.lexer.get_next_token
         else:
             self.error(
                 'Expected token <{}> but found <{}> at line {}.'.format(
@@ -82,6 +82,15 @@ class Parser(object):
             library_name=token.value
         )
 
+    @restorable
+    def check_function(self, with_declaration=False):
+        """Look ahead to check declaration type"""
+        if with_declaration:
+            self.eat(TYPE)
+        self.eat(ID)
+        result = self.current_token.type == LPAREN
+        return result
+
     def function_declaration(self):
         """
         function_declaration        : type_spec ID LPAREN parameters RPAREN function_body
@@ -101,12 +110,26 @@ class Parser(object):
 
     def function_body(self):
         """
-        function_body               : LBRACKET statement_list RBRACKET
+        function_body               : LBRACKET statement_list<declaration=True> RBRACKET
         """
         self.eat(LBRACKET)
         node = Body(self.statement_list(allow_declaration=True))
         self.eat(RBRACKET)
         return node
+
+    def parameters(self):
+        """
+        parameters                  : empty
+                                    | type_spec variable (COMMA type_spec variable)*
+        """
+        if self.current_token.type == RPAREN:
+            return []
+
+        nodes = [Param(self.type_spec(), self.variable())]
+        while self.current_token.type == COMMA:
+            self.eat(COMMA)
+            nodes.append(Param(self.type_spec(), self.variable()))
+        return nodes
 
     def var_declaration_list(self):
         """
@@ -149,39 +172,26 @@ class Parser(object):
             ))
         return declarations
 
-    def parameters(self):
-        """
-        parameters                  : empty
-                                    | param
-                                    | param COMMA parameters
-
-        param                       : type_spec variable
-        """
-        if self.current_token.type == RPAREN:
-            return []
-
-        nodes = [Param(self.type_spec(), self.variable())]
-        while self.current_token.type == COMMA:
-            self.eat(COMMA)
-            nodes.append(Param(self.type_spec(), self.variable()))
-        return nodes
-
-    @restorable
-    def check_function(self, declaration=False):
-        """Look ahead to check declaration type"""
-        if declaration:
-            self.eat(TYPE)
-        self.eat(ID)
-        result = self.current_token.type == LPAREN
-        return result
-
     def block(self):
         """
         block                       : LBRACKET statement_list RBRACKET
         """
         self.eat(LBRACKET)
-        node = Block(self.statement_list())
+        node = Block(self.statement_list(allow_declaration=True))
         self.eat(RBRACKET)
+        return node
+
+    def stmt_body(self):
+        """
+        stmt_body                   : statement
+                                    | LBRACKET statement_list RBRACKET
+        """
+        if self.current_token.type == LBRACKET:
+            self.eat(LBRACKET)
+            node = Body(statements=self.statement_list())
+            self.eat(RBRACKET)
+        else:
+            node = Body(statements=[self.statement()])
         return node
 
     def statement_list(self, allow_declaration=False):
@@ -266,36 +276,6 @@ class Parser(object):
             else_body=else_body
         )
 
-    def stmt_body(self):
-        """
-        stmt_body               : statement
-                                | LBRACKET statement_list RBRACKET
-        """
-        if self.current_token.type == LBRACKET:
-            self.eat(LBRACKET)
-            node = Body(statements=self.statement_list())
-            self.eat(RBRACKET)
-        else:
-            node = Body(statements=[self.statement()])
-        return node
-
-    def type_spec(self):
-        """
-        type_spec                   : TYPE
-        """
-        token = self.current_token
-        self.eat(TYPE)
-        node = Type(token)
-        return node
-
-    def variable(self):
-        """
-        variable                    : ID
-        """
-        node = Var(self.current_token)
-        self.eat(ID)
-        return node
-
     def expr(self):
         """
         expr                        : term ((PLUS | MINUS) term)*
@@ -334,8 +314,10 @@ class Parser(object):
         """
         factor                      : PLUS factor
                                     | MINUS factor
+                                    | AMPERSAND variable
                                     | INT_NUMBER
                                     | LPAREN expr RPAREN
+                                    | function_call
                                     | variable
         """
         token = self.current_token
@@ -363,25 +345,54 @@ class Parser(object):
 
     def function_call(self):
         """
-        function_call               : ID LPAREN (expr | STRING)* RPAREN
+        function_call               : ID LPAREN RPAREN
+                                    | ID LPAREN call_param (COMMA call_param)* RPAREN
         """
         func_name = self.current_token.value
+        params = list()
         self.eat(ID)
         self.eat(LPAREN)
-        params = []
-        while self.current_token.type != RPAREN:
-            if self.current_token.type == STRING:
-                params.append(String(self.current_token))
-                self.eat(STRING)
-            else:
-                params.append(self.expr())
-            if self.current_token.type == COMMA:
+        if self.current_token.type != RPAREN:
+            params.append(self.call_param())
+            while self.current_token.type == COMMA:
                 self.eat(COMMA)
+                params.append(self.call_param())
         self.eat(RPAREN)
         return FunctionCall(
             func_name=func_name,
             params=params
         )
+
+    def call_param(self):
+        if self.current_token.type == STRING:
+            return self.string()
+        else:
+            return self.expr()
+
+    def type_spec(self):
+        """
+        type_spec                   : TYPE
+        """
+        token = self.current_token
+        self.eat(TYPE)
+        node = Type(token)
+        return node
+
+    def variable(self):
+        """
+        variable                    : ID
+        """
+        node = Var(self.current_token)
+        self.eat(ID)
+        return node
+
+    def string(self):
+        """
+        string                      : STRING
+        """
+        token = self.current_token
+        self.eat(STRING)
+        return String(token)
 
     def empty(self):
         """An empty production"""
@@ -397,18 +408,19 @@ class Parser(object):
 
         function_declaration        : type_spec ID LPAREN parameters RPAREN function_body
 
-        function_body               : LBRACKET statement_list RBRACKET
+        function_body               : LBRACKET statement_list<declaration=True> RBRACKET
+
+        parameters                  : empty
+                                    | type_spec variable (COMMA type_spec variable)*
 
         var_declaration_list        : type_spec var var_initialization (COMMA var var_initialization)* SEMICOLON
 
         var_initialization          : (ASSIGN expr)?
 
-        parameters                  : empty
-                                    | param (COMMA param)*
+        block                       : LBRACKET statement_list<declaration=True> RBRACKET
 
-        param                       : type_spec variable
-
-        block                       : LBRACKET statement_list RBRACKET
+        stmt_body                   : statement
+                                    | LBRACKET statement_list<declaration=False> RBRACKET
 
         statement_list              : var_declaration_list
                                     | statement
@@ -426,24 +438,31 @@ class Parser(object):
 
         if_statement                : IF LPAREN expr RPAREN stmt_body (ELSE stmt_body)?
 
-        term                        : factor ((MUL | DIV) factor)*
-
-        type_spec                   : TYPE
-
-        variable                    : ID
-
         expr                        : term ((PLUS | MINUS) term)*
 
         term                        : factor ((MUL | DIV) factor)*
 
         factor                      : PLUS factor
                                     | MINUS factor
+                                    | AMPERSAND variable
                                     | INT_NUMBER
                                     | LPAREN expr RPAREN
                                     | variable
                                     | function_call
 
-        function_call               : ID LPAREN (expr | STRING)* RPAREN
+        function_call               : ID LPAREN RPAREN
+                                    | ID LPAREN call_param (COMMA call_param)* RPAREN
+
+        call_param                  : string
+                                    | expr
+
+        type_spec                   : TYPE
+
+        variable                    : ID
+
+        string                      : STRING
+
+        empty                       :
 
         """
         node = self.program()

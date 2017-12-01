@@ -1,5 +1,6 @@
 import unittest
 from interpreter.lexical_analysis.token_type import *
+from interpreter.lexical_analysis.lexer import LexicalError
 
 class LexerTestCase(unittest.TestCase):
     def makeLexer(self, text):
@@ -11,10 +12,10 @@ class LexerTestCase(unittest.TestCase):
         if not value:
             value = text
         lexer = self.makeLexer(text)
-        token = lexer.get_next_token()
+        token = lexer.get_next_token
         self.assertEqual(token.type, token_type)
         self.assertEqual(token.value, value)
-        token = lexer.get_next_token()
+        token = lexer.get_next_token
         self.assertEqual(token.type, EOF)
 
     def test_lexer_integer(self):
@@ -85,8 +86,13 @@ class LexerTestCase(unittest.TestCase):
             (',', COMMA, ','),
             ('.', DOT, '.'),
             ('#', HASH, '#'),
-            ('<', LESS_THAN, '<'),
-            ('>', GREATER_THAN, '>'),
+            ('<', LT, '<'),
+            ('<=', LE, '<='),
+            ('>', GT, '>'),
+            ('>=', GE, '>='),
+            ('==', EQ, '=='),
+            ('!=', NE, '!='),
+            ('!', NOT, '!'),
             ('"String"', STRING, 'String'),
         )
 
@@ -98,7 +104,10 @@ class LexerTestCase(unittest.TestCase):
             )
 
     def test_lexer_unexpected_char(self):
-        from interpreter.lexical_analysis.lexer import LexicalError
-        lexer = self.makeLexer('@')
-        self.assertRaises(LexicalError, lexer.get_next_token)
+        lexer = self.makeLexer("@")
+        with self.assertRaises(LexicalError) as le:
+            test = lexer.get_next_token
+        the_exception = le.exception
+        self.assertEqual(str(the_exception), 'Invalid char @ at line 1')
+
 

@@ -277,6 +277,9 @@ class Parser(object):
         )
 
     def expr(self):
+        """
+        expr                        : logic_expr ((AND | OR) logic_expr)*
+        """
         node = self.logic_expr()
         while self.current_token.type in (AND, OR):
             token = self.current_token
@@ -285,6 +288,9 @@ class Parser(object):
         return node
 
     def logic_expr(self):
+        """
+        logic_expr                  : arithm_expr ((LE | LT | GE | GT | EQ | NE) arithm_expr)?
+        """
         node = self.arithm_expr()
 
         if self.current_token.type in (LE, LT, GE, GT, EQ, NE):
@@ -299,7 +305,7 @@ class Parser(object):
 
     def arithm_expr(self):
         """
-        expr                        : term ((PLUS | MINUS) term)*
+        arithm_expr                 : term ((PLUS | MINUS) term)*
         """
         node = self.term()
 
@@ -455,7 +461,11 @@ class Parser(object):
 
         if_statement                : IF LPAREN expr RPAREN stmt_body (ELSE stmt_body)?
 
-        expr                        : term ((PLUS | MINUS) term)*
+        expr                        : logic_expr ((AND | OR) logic_expr)*
+
+        logic_expr                  : arithm_expr ((LE | LT | GE | GT | EQ | NE) arithm_expr)?
+
+        arithm_expr                 : term ((PLUS | MINUS) term)*
 
         term                        : factor ((MUL | DIV) factor)*
 

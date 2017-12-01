@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <math.h>
 int test(int a){
     printf("%d\n", a);
     return a;
@@ -24,6 +25,6 @@ int main(){
       i = i + 1;
    }
 
-   printf("%.2f", test(b + c + 3));
+   printf("%.2f", sqrt(9));
    return 0;
 }

@@ -88,8 +88,7 @@ class Parser(object):
         if with_declaration:
             self.eat(TYPE)
         self.eat(ID)
-        result = self.current_token.type == LPAREN
-        return result
+        return self.current_token.type == LPAREN
 
     def function_declaration(self):
         """
@@ -227,10 +226,13 @@ class Parser(object):
                 self.eat(SEMICOLON)
             else:
                 node = self.assignment_statement()
+                self.eat(SEMICOLON)
         elif self.current_token.type == IF:
             node = self.if_statement()
         elif self.current_token.type == WHILE:
             node = self.while_statement()
+        elif self.current_token.type == FOR:
+            node = self.for_statement()
         elif self.current_token.type == RETURN:
             node = self.return_statement()
         else:
@@ -245,8 +247,12 @@ class Parser(object):
         token = self.current_token
         self.eat(ASSIGN)
         node = Assign(left, token, self.expr())
-        self.eat(SEMICOLON)
         return node
+
+    @restorable
+    def check_assignment_statement(self):
+        self.eat(ID)
+        return self.current_token.type == ASSIGN
 
     def return_statement(self):
         """
@@ -290,6 +296,46 @@ class Parser(object):
         return WhileStmt(
             condition=cond_node,
             body=body
+        )
+
+    def for_statement(self):
+
+        def single_expr():
+            if self.check_assignment_statement():
+                return self.assignment_statement()
+            else:
+                return self.expr()
+
+        self.eat(FOR)
+        self.eat(LPAREN)
+
+        #  setup
+        setup = []
+        if not self.current_token.type == SEMICOLON:
+            setup.append(single_expr())
+            while self.current_token.type == COMMA:
+                self.eat(COMMA)
+                setup.append(single_expr())
+        self.eat(SEMICOLON)
+
+        #  test expression
+        cond_node = self.expr()
+        self.eat(SEMICOLON)
+
+        #  increment
+        increment = []
+        if not self.current_token.type == RPAREN:
+            increment.append(single_expr())
+            while self.current_token.type == COMMA:
+                self.eat(COMMA)
+                increment.append(single_expr())
+        self.eat(RPAREN)
+
+        return ForStmt(
+            setup=setup,
+            condition=cond_node,
+            increment=increment,
+            body=self.stmt_body()
         )
 
     def expr(self):
@@ -447,7 +493,7 @@ class Parser(object):
 
         declarations                : (include_library | function_declaration | var_declaration_list)*
 
-        include_library             : HASH ID<'include'> LESS_THAN ID DOT ID<'h'> GREATER_THAN
+        include_library             : HASH ne ides ni vID<'include'> LESS_THAN ID DOT ID<'h'> GREATER_THAN
 
         function_declaration        : type_spec ID LPAREN parameters RPAREN function_body
 

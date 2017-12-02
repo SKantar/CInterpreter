@@ -1,7 +1,7 @@
 class Token(object):
-    def __init__(self, t, v):
-        self.type = t
-        self.value = v
+    def __init__(self, type, value):
+        self.type = type
+        self.value = value
 
     def __str__(self):
         """String representation of the class instance.

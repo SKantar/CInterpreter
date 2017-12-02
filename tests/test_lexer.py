@@ -1,115 +1,105 @@
 import unittest
+
 from interpreter.lexical_analysis.token_type import *
-from interpreter.lexical_analysis.lexer import LexicalError
+from interpreter.lexical_analysis.lexer import Lexer, LexicalError
 
 class LexerTestCase(unittest.TestCase):
-    def makeLexer(self, text):
-        from interpreter.lexical_analysis.lexer import Lexer
-        lexer = Lexer(text)
-        return lexer
 
-    def check(self, text, token_type, value=None):
-        if not value:
-            value = text
-        lexer = self.makeLexer(text)
-        token = lexer.get_next_token
-        self.assertEqual(token.type, token_type)
-        self.assertEqual(token.value, value)
+    def check_list(self, *args, lexer=None):
+        for token_type in args:
+            token = lexer.get_next_token
+            self.assertEqual(token.type, token_type)
         token = lexer.get_next_token
         self.assertEqual(token.type, EOF)
 
-    def test_lexer_integer(self):
-        self.check(
-            text='234',
-            token_type=INT_NUMBER,
-            value=234
+    def test_arithmetic_ops(self):
+        lexer = Lexer('+ - / * %')
+        self.check_list(
+            ADD_OP, SUB_OP, DIV_OP, MUL_OP, MOD_OP,
+            lexer=lexer
         )
 
-    def test_lexer_mul(self):
-        self.check(
-            text='*',
-            token_type=MUL
+    def test_bit_ops(self):
+        lexer = Lexer('^ | & << >>')
+        self.check_list(
+            XOR_OP, OR_OP, AND_OP, LEFT_OP, RIGHT_OP,
+            lexer=lexer
         )
 
-    def test_lexer_div(self):
-        self.check(
-            text='/',
-            token_type=DIV
+    def test_compare_ops(self):
+        lexer = Lexer('< > <= >= == !=')
+        self.check_list(
+            LT_OP, GT_OP, LE_OP, GE_OP, EQ_OP, NE_OP,
+            lexer=lexer
         )
 
-    def test_lexer_plus(self):
-        self.check(
-            text='+',
-            token_type=PLUS
+    def test_logical_ops(self):
+        lexer = Lexer('&& || !')
+        self.check_list(
+            LOG_AND_OP, LOG_OR_OP, NOT,
+            lexer=lexer
         )
 
-    def test_lexer_minus(self):
-        self.check(
-            text='-',
-            token_type=MINUS
+    def test_inc_dec(self):
+        lexer = Lexer('++ --')
+        self.check_list(
+            INC_OP, DEC_OP,
+            lexer=lexer
         )
 
-    def test_lexer_lparen(self):
-        self.check(
-            text='(',
-            token_type=LPAREN
+    def test_assign_ops(self):
+        lexer = Lexer('= += -= *= /= >>= <<= &= |= ^=')
+        self.check_list(
+            ASSIGN, ADD_ASSIGN, SUB_ASSIGN, MUL_ASSIGN, DIV_ASSIGN,
+            RIGHT_ASSIGN, LEFT_ASSIGN, AND_ASSIGN, OR_ASSIGN, XOR_ASSIGN,
+            lexer=lexer
         )
 
-    def test_lexer_rparen(self):
-        self.check(
-            text=')',
-            token_type=RPAREN
+    def test_types(self):
+        lexer = Lexer('int float double')
+        self.check_list(
+            INT, FLOAT, DOUBLE,
+            lexer=lexer
         )
 
-    def test_lexer_lbracket(self):
-        self.check(
-            text='{',
-            token_type=LBRACKET
+    def test_ids(self):
+        lexer = Lexer('a a5a a1a newaaa')
+        self.check_list(
+            ID, ID, ID, ID,
+            lexer=lexer
         )
 
-    def test_lexer_rbracket(self):
-        self.check(
-            text='}',
-            token_type=RBRACKET
+    def test_reserved_words(self):
+        lexer = Lexer('if else for while')
+        self.check_list(
+            IF, ELSE, FOR, WHILE,
+            lexer=lexer
         )
 
-    def test_lexer_other_tokens(self):
-        check_records = (
-            ('=', ASSIGN, '='),
-            ('name', ID, 'name'),
-            ('int', TYPE, 'int'),
-            (',', COMMA, ','),
-            ('if', IF, 'if'),
-            ('else', ELSE, 'else'),
-            ('return', RETURN, 'return'),
-            (';', SEMICOLON, ';'),
-            (',', COMMA, ','),
-            ('.', DOT, '.'),
-            ('#', HASH, '#'),
-            ('<', LT, '<'),
-            ('<=', LE, '<='),
-            ('>', GT, '>'),
-            ('>=', GE, '>='),
-            ('==', EQ, '=='),
-            ('!=', NE, '!='),
-            ('!', NOT, '!'),
-            ('&&', AND, '&&'),
-            ('||', OR, '||'),
-            ('"String"', STRING, 'String'),
+    def test_numbers(self):
+        lexer = Lexer('123 12.2 0.23 123')
+        self.check_list(
+            INTEGER_CONST, REAL_CONST, REAL_CONST, INTEGER_CONST,
+            lexer=lexer
         )
 
-        for text, tok_type, tok_val in check_records:
-            self.check(
-                text=text,
-                token_type=tok_type,
-                value=tok_val
-            )
+    def test_strings(self):
+        lexer = Lexer('"ovo je novi string"')
+        self.check_list(
+            STRING,
+            lexer=lexer
+        )
 
-    def test_lexer_unexpected_char(self):
-        lexer = self.makeLexer("@")
-        with self.assertRaises(LexicalError) as le:
-            test = lexer.get_next_token
-        the_exception = le.exception
-        self.assertEqual(str(the_exception), 'Invalid char @ at line 1')
+    def test_neg_strings(self):
+        lexer = Lexer('''
+        "ovo je novi 
+        string"
+        ''')
+        with self.assertRaises(LexicalError):
+            var = lexer.get_next_token
+            pass
+
+if __name__ == '__main__':
+    unittest.main()
 
 

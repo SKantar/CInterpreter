@@ -3,11 +3,13 @@ from .token_type import *
 from .token import Token
 
 RESERVED_KEYWORDS = {
-    'int': Token(TYPE, 'int'),
+    'int': Token(INT, 'int'),
+    'float': Token(FLOAT, 'float'),
+    'double': Token(DOUBLE, 'double'),
     'if': Token(IF, 'if'),
+    'else': Token(ELSE, 'else'),
     'for': Token(FOR, 'for'),
     'while': Token(WHILE, 'while'),
-    'else': Token(ELSE, 'else'),
     'return': Token(RETURN, 'return'),
 }
 
@@ -23,7 +25,7 @@ class Lexer(object):
         self.current_char = self.text[self.pos]
         self.line = 1
 
-    def error(self, message='Invalid character'):
+    def error(self, message):
         raise LexicalError(message)
 
     def advance(self):
@@ -34,9 +36,9 @@ class Lexer(object):
         else:
             self.current_char = self.text[self.pos]
 
-    def peek(self):
-        """ Check next char but don't change state. """
-        peek_pos = self.pos + 1
+    def peek(self, n):
+        """ Check next n-th char but don't change state. """
+        peek_pos = self.pos + n
         if peek_pos > len(self.text) - 1:
             return None
         else:
@@ -49,20 +51,32 @@ class Lexer(object):
                 self.line += 1
             self.advance()
 
-    def integer(self):
-        """ Return a (multidigit) integer consumed from the input. """
+    def number(self):
+        """Return a (multidigit) integer or float consumed from the input."""
         result = ''
         while self.current_char is not None and self.current_char.isdigit():
             result += self.current_char
             self.advance()
-        return int(result)
+
+        if self.current_char == '.':
+            result += self.current_char
+            self.advance()
+
+            while (self.current_char is not None and self.current_char.isdigit()):
+                result += self.current_char
+                self.advance()
+
+            token = Token(REAL_CONST, float(result))
+        else:
+            token = Token(INTEGER_CONST, int(result))
+
+        return token
 
     def string(self):
-        """ Return a (multidigit) integer consumed from the input. """
         result = ''
         self.advance()
         while self.current_char is not '"':
-            if self.current_char is None:
+            if self.current_char in ('\n', None):
                 self.error(
                     message='Unfinished string with \'"\'at line {}'.format(self.line)
                 )
@@ -97,80 +111,160 @@ class Lexer(object):
                 return self._id()
 
             if self.current_char.isdigit():
-                return Token(INT_NUMBER, self.integer())
+                return self.number()
 
             if self.current_char == '"':
                 return Token(STRING, self.string())
 
-            if self.current_char == '<' and self.peek() == '=':
+            if self.current_char == '<' and self.peek(1) == '<' and self.peek(2) == '=':
                 self.advance()
                 self.advance()
-                return Token(LE, '<=')
+                self.advance()
+                return Token(LEFT_ASSIGN, '<<=')
+
+            if self.current_char == '>' and self.peek(1) == '>' and self.peek(2) == '=':
+                self.advance()
+                self.advance()
+                self.advance()
+                return Token(RIGHT_ASSIGN, '>>=')
+
+            if self.current_char == '+' and self.peek(1) == '=':
+                self.advance()
+                self.advance()
+                return Token(ADD_ASSIGN, '+=')
+
+            if self.current_char == '-' and self.peek(1) == '=':
+                self.advance()
+                self.advance()
+                return Token(SUB_ASSIGN, '-=')
+
+            if self.current_char == '*' and self.peek(1) == '=':
+                self.advance()
+                self.advance()
+                return Token(MUL_ASSIGN, '*=')
+
+            if self.current_char == '/' and self.peek(1) == '=':
+                self.advance()
+                self.advance()
+                return Token(DIV_ASSIGN, '/=')
+
+            if self.current_char == '%' and self.peek(1) == '=':
+                self.advance()
+                self.advance()
+                return Token(MOD_ASSIGN, '%=')
+
+            if self.current_char == '&' and self.peek(1) == '=':
+                self.advance()
+                self.advance()
+                return Token(AND_ASSIGN, '&=')
+
+            if self.current_char == '^' and self.peek(1) == '=':
+                self.advance()
+                self.advance()
+                return Token(XOR_ASSIGN, '^=')
+
+            if self.current_char == '|' and self.peek(1) == '=':
+                self.advance()
+                self.advance()
+                return Token(OR_ASSIGN, '|=')
+
+            if self.current_char == '>' and self.peek(1) == '>':
+                self.advance()
+                self.advance()
+                return Token(RIGHT_OP, '>>')
+
+            if self.current_char == '<' and self.peek(1) == '<':
+                self.advance()
+                self.advance()
+                return Token(LEFT_OP, '<<')
+
+            if self.current_char == '+' and self.peek(1) == '+':
+                self.advance()
+                self.advance()
+                return Token(INC_OP, '++')
+
+            if self.current_char == '-' and self.peek(1) == '-':
+                self.advance()
+                self.advance()
+                return Token(DEC_OP, '--')
+
+            if self.current_char == '&' and self.peek(1) == '&':
+                self.advance()
+                self.advance()
+                return Token(LOG_AND_OP, '&&')
+
+            if self.current_char == '|' and self.peek(1) == '|':
+                self.advance()
+                self.advance()
+                return Token(LOG_OR_OP, '||')
+
+            if self.current_char == '<' and self.peek(1) == '=':
+                self.advance()
+                self.advance()
+                return Token(LE_OP, '<=')
+
+            if self.current_char == '>' and self.peek(1) == '=':
+                self.advance()
+                self.advance()
+                return Token(GE_OP, '>=')
+
+            if self.current_char == '=' and self.peek(1) == '=':
+                self.advance()
+                self.advance()
+                return Token(EQ_OP, '==')
+
+            if self.current_char == '!' and self.peek(1) == '=':
+                self.advance()
+                self.advance()
+                return Token(NE_OP, '!=')
 
             if self.current_char == '<':
                 self.advance()
-                return Token(LT, '<')
-
-            if self.current_char == '>' and self.peek() == '=':
-                self.advance()
-                self.advance()
-                return Token(GE, '>=')
+                return Token(LT_OP, '<')
 
             if self.current_char == '>':
                 self.advance()
-                return Token(GT, '>')
-
-            if self.current_char == '=' and self.peek() == '=':
-                self.advance()
-                self.advance()
-                return Token(EQ, '==')
+                return Token(GT_OP, '>')
 
             if self.current_char == '=':
                 self.advance()
                 return Token(ASSIGN, '=')
 
-            if self.current_char == '!' and self.peek() == '=':
-                self.advance()
-                self.advance()
-                return Token(NE, '!=')
-
             if self.current_char == '!':
                 self.advance()
                 return Token(NOT, '!')
 
-            if self.current_char == '&' and self.peek() == '&':
-                self.advance()
-                self.advance()
-                return Token(AND, '&&')
-
             if self.current_char == '&':
                 self.advance()
-                return Token(AMPERSAND, '&')
+                return Token(AND_OP, '&')
 
-            if self.current_char == '|' and self.peek() == '|':
+            if self.current_char == '|':
                 self.advance()
-                self.advance()
-                return Token(OR, '||')
+                return Token(OR_OP, '|')
 
-            if self.current_char == ';':
+            if self.current_char == '^':
                 self.advance()
-                return Token(SEMICOLON, ';')
+                return Token(XOR_OP, '|')
 
             if self.current_char == '+':
                 self.advance()
-                return Token(PLUS, '+')
+                return Token(ADD_OP, '+')
 
             if self.current_char == '-':
                 self.advance()
-                return Token(MINUS, '-')
+                return Token(SUB_OP, '-')
 
             if self.current_char == '*':
                 self.advance()
-                return Token(MUL, '*')
+                return Token(MUL_OP, '*')
 
             if self.current_char == '/':
                 self.advance()
-                return Token(DIV, '/')
+                return Token(DIV_OP, '/')
+
+            if self.current_char == '%':
+                self.advance()
+                return Token(MOD_OP, '%')
 
             if self.current_char == '(':
                 self.advance()
@@ -188,6 +282,14 @@ class Lexer(object):
                 self.advance()
                 return Token(RBRACKET, '}')
 
+            if self.current_char == ';':
+                self.advance()
+                return Token(SEMICOLON, ';')
+
+            if self.current_char == ':':
+                self.advance()
+                return Token(COLON, ':')
+
             if self.current_char == ',':
                 self.advance()
                 return Token(COMMA, ',')
@@ -199,8 +301,6 @@ class Lexer(object):
             if self.current_char == '#':
                 self.advance()
                 return Token(HASH, '#')
-
-
 
             self.error(
                 message="Invalid char {} at line {}".format(self.current_char, self.line)

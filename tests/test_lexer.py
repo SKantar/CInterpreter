@@ -36,7 +36,7 @@ class LexerTestCase(unittest.TestCase):
     def test_logical_ops(self):
         lexer = Lexer('&& || !')
         self.check_list(
-            LOG_AND_OP, LOG_OR_OP, NOT,
+            LOG_AND_OP, LOG_OR_OP, LOG_NEG,
             lexer=lexer
         )
 

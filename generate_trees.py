@@ -2,7 +2,7 @@ import os
 path = '/home/skantar/Documents/Learning/CInterpreter/examples'
 
 print("PROCESSING...")
-for dir_name in os.listdir(path):
+for dir_name in sorted(os.listdir(path)):
     print(dir_name)
     dir_path = os.path.join(path, dir_name)
     input_filename = "{}.c".format(os.path.join(dir_path, dir_name))
@@ -15,4 +15,5 @@ for dir_name in os.listdir(path):
         png_filename,
         dot_filename,
     ))
+    break
 print("FINISHED")

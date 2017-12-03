@@ -10,7 +10,10 @@ RESERVED_KEYWORDS = {
     'else': Token(ELSE, 'else'),
     'for': Token(FOR, 'for'),
     'while': Token(WHILE, 'while'),
+    'do': Token(DO, 'do'),
     'return': Token(RETURN, 'return'),
+    'break': Token(BREAK, 'break'),
+    'continue': Token(CONTINUE, 'continue'),
 }
 
 
@@ -232,7 +235,7 @@ class Lexer(object):
 
             if self.current_char == '!':
                 self.advance()
-                return Token(NOT, '!')
+                return Token(LOG_NEG, '!')
 
             if self.current_char == '&':
                 self.advance()
@@ -301,6 +304,10 @@ class Lexer(object):
             if self.current_char == '#':
                 self.advance()
                 return Token(HASH, '#')
+
+            if self.current_char == '?':
+                self.advance()
+                return Token(QUESTION_MARK, '?')
 
             self.error(
                 message="Invalid char {} at line {}".format(self.current_char, self.line)

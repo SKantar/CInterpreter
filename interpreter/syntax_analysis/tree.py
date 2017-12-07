@@ -1,5 +1,6 @@
 class Node(object):
-    pass
+    def __init__(self, line):
+        self.line = line
 
 
 class NoOp(Node):
@@ -7,77 +8,89 @@ class NoOp(Node):
 
 
 class Num(Node):
-    def __init__(self, token):
+    def __init__(self, token, line):
+        Node.__init__(self, line)
         self.token = token
         self.value = token.value
 
 
 class String(Node):
-    def __init__(self, token):
+    def __init__(self, token, line):
+        Node.__init__(self, line)
         self.token = token
         self.value = token.value
 
 
 class Type(Node):
-    def __init__(self, token):
+    def __init__(self, token, line):
+        Node.__init__(self, line)
         self.token = token
         self.value = token.value
 
 
 class Var(Node):
-    def __init__(self, token):
+    def __init__(self, token, line):
+        Node.__init__(self, line)
         self.token = token
         self.value = token.value
 
 
 class BinOp(Node):
-    def __init__(self, left, op, right):
+    def __init__(self, left, op, right, line):
+        Node.__init__(self, line)
         self.left = left
         self.token = self.op = op
         self.right = right
 
 
 class UnOp(Node):
-    def __init__(self, op, expr, prefix=True):
+    def __init__(self, op, expr, line, prefix=True):
+        Node.__init__(self, line)
         self.token = self.op = op
         self.expr = expr
         self.prefix = prefix
 
 
 class TerOp(Node):
-    def __init__(self, condition, texpression, fexpression):
+    def __init__(self, condition, texpression, fexpression, line):
+        Node.__init__(self, line)
         self.condition = condition
         self.texpression = texpression
         self.fexpression = fexpression
 
 
 class Assign(Node):
-    def __init__(self, left, op, right):
+    def __init__(self, left, op, right, line):
+        Node.__init__(self, line)
         self.left = left
         self.token = self.op = op
         self.right = right
 
 
 class Expression(Node):
-    def __init__(self, children):
+    def __init__(self, children, line):
+        Node.__init__(self, line)
         self.children = children
 
 
 class FunctionCall(Node):
-    def __init__(self, name, args):
+    def __init__(self, name, args, line):
+        Node.__init__(self, line)
         self.name = name
         self.args = args            # a list of Param nodes
 
 
 class IfStmt(Node):
-    def __init__(self, condition, tbody, fbody=None):
+    def __init__(self, condition, tbody, line, fbody=None):
+        Node.__init__(self, line)
         self.condition = condition
         self.tbody = tbody
         self.fbody = fbody
 
 
 class WhileStmt(Node):
-    def __init__(self, condition, body):
+    def __init__(self, condition, body, line):
+        Node.__init__(self, line)
         self.condition = condition
         self.body = body
 
@@ -87,7 +100,8 @@ class DoWhileStmt(WhileStmt):
 
 
 class ReturnStmt(Node):
-    def __init__(self, expression):
+    def __init__(self, expression, line):
+        Node.__init__(self, line)
         self.expression = expression
 
 
@@ -100,7 +114,8 @@ class ContinueStmt(Node):
 
 
 class ForStmt(Node):
-    def __init__(self, setup, condition, increment, body):
+    def __init__(self, setup, condition, increment, body, line):
+        Node.__init__(self, line)
         self.setup = setup
         self.condition = condition
         self.increment = increment
@@ -108,29 +123,34 @@ class ForStmt(Node):
 
 
 class CompoundStmt(Node):
-    def __init__(self, children):
+    def __init__(self, children, line):
+        Node.__init__(self, line)
         self.children = children
 
 
 class VarDecl(Node):
-    def __init__(self, var_node, type_node):
+    def __init__(self, var_node, type_node, line):
+        Node.__init__(self, line)
         self.var_node = var_node
         self.type_node = type_node
 
 
 class IncludeLibrary(Node):
-    def __init__(self, library_name):
+    def __init__(self, library_name, line):
+        Node.__init__(self, line)
         self.library_name = library_name
 
 
 class Param(Node):
-    def __init__(self, type_node, var_node):
+    def __init__(self, type_node, var_node, line):
+        Node.__init__(self, line)
         self.var_node = var_node
         self.type_node = type_node
 
 
 class FunctionDecl(Node):
-    def __init__(self, type_node, func_name, params, body):
+    def __init__(self, type_node, func_name, params, body, line):
+        Node.__init__(self, line)
         self.type_node = type_node
         self.func_name = func_name
         self.params = params            # a list of Param nodes
@@ -138,7 +158,8 @@ class FunctionDecl(Node):
 
 
 class Program(Node):
-    def __init__(self, declarations):
+    def __init__(self, declarations, line):
+        Node.__init__(self, line)
         self.children = declarations
 
 

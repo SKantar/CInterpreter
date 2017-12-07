@@ -5,7 +5,6 @@ from ..utils.utils import get_all_module_func, get_name
 from .types import CType
 import warnings
 
-
 class SemanticError(Exception):
     pass
 
@@ -52,7 +51,10 @@ class SemanticAnalyzer(NodeVisitor):
         # with the same name
         if self.current_scope.lookup(var_name, current_scope_only=True):
             self.error(
-                "Error: Duplicate identifier '%s' found" % var_name
+                "Error: Duplicate identifier '{}' found at line {}".format(
+                    var_name,
+                    node.line
+                )
             )
 
         self.current_scope.insert(var_symbol)
@@ -113,7 +115,10 @@ class SemanticAnalyzer(NodeVisitor):
 
         if self.current_scope.lookup(var_name, current_scope_only=True):
             self.error(
-                "Error: Duplicate identifier '%s' found" % var_name
+                "Error: Duplicate identifier '{}' found at line {}".format(
+                    var_name,
+                    node.line
+                )
             )
 
         self.current_scope.insert(var_symbol)
@@ -131,11 +136,15 @@ class SemanticAnalyzer(NodeVisitor):
         for child in node.children:
             self.visit(child, *args, **kwargs)
 
+        if 'function' not in kwargs:
+            self.current_scope = self.current_scope.enclosing_scope
+
     def visit_BinOp(self, node, *args, **kwargs):
         return self.visit(node.left, *args, **kwargs) + self.visit(node.right, *args, **kwargs)
 
     def visit_UnOp(self, node, *args, **kwargs):
         if isinstance(node.op, Type):
+            self.visit(node.expr, *args, **kwargs)
             return CType(node.op.value)
         return self.visit(node.expr, *args, **kwargs)
 
@@ -144,9 +153,10 @@ class SemanticAnalyzer(NodeVisitor):
         texpr = self.visit(node.texpression, *args, **kwargs)
         fexpr = self.visit(node.fexpression, *args, **kwargs)
         if texpr != fexpr:
-            self.warning("Incompatibile types at ternary operator texpr:<{}> fexpr:<{}>".format(
+            self.warning("Incompatibile types at ternary operator texpr:<{}> fexpr:<{}> at line {}".format(
                 texpr,
-                fexpr
+                fexpr,
+                node.line
             ))
         return texpr
 
@@ -154,10 +164,11 @@ class SemanticAnalyzer(NodeVisitor):
         right = self.visit(node.right, *args, **kwargs)
         left = self.visit(node.left, *args, **kwargs)
         if left != right:
-            self.warning("Incompatibile types <{}> {} <{}>".format(
+            self.warning("Incompatibile types <{}> {} <{}> at line {}".format(
                 left,
                 node.op.value,
-                right
+                right,
+                node.line
             ))
         return right
 
@@ -166,7 +177,10 @@ class SemanticAnalyzer(NodeVisitor):
         var_symbol = self.current_scope.lookup(var_name)
         if var_symbol is None:
             self.error(
-                "Symbol(identifier) not found '%s'" % var_name
+                "Symbol(identifier) not found '{}' at line {}".format(
+                    var_name,
+                    node.line
+                )
             )
         return CType(var_symbol.type.name)
 
@@ -206,38 +220,47 @@ class SemanticAnalyzer(NodeVisitor):
         func_symbol = self.current_scope.lookup(func_name)
         if func_symbol is None:
             self.error(
-                "Function '%s' not found" % func_name
-            )
+                "Function '{}' not found at line {}".format(
+                    func_name,
+                    node.line
+            ))
 
         if not isinstance(func_symbol, FunctionSymbol):
             self.error(
-                "Identifier '%s' cannot be used as a function" % func_name
+                "Identifier '{}' cannot be used as a function at line".format(
+                    func_name,
+                    node.line
+                )
             )
 
 
         if func_symbol.params != None:
             if len(node.args) != len(func_symbol.params):
                 self.error(
-                    "Function {} takes {} positional arguments but {} were given".format(
+                    "Function {} takes {} positional arguments but {} were given at line {}".format(
                         func_name,
-                        len(node.params),
-                        len(func_symbol.params)
+                        len(node.args),
+                        len(func_symbol.params),
+                        node.line
                     )
                 )
 
             expected = []
             found = []
+
             for i, arg in enumerate(node.args):
                 arg_type = self.visit(arg, *args, **kwargs)
                 param_type = CType(func_symbol.params[i].type.name)
                 expected.append(param_type)
                 found.append(arg_type)
+
             if expected != found:
-                self.warning("Incompatibile argument types for function <{}{}> but found <{}{}>".format(
+                self.warning("Incompatibile argument types for function <{}{}> but found <{}{}> at line {}".format(
                     func_name,
                     str(expected).replace('[', '(').replace(']', ')'),
                     func_name,
-                    str(found).replace('[', '(').replace(']', ')')
+                    str(found).replace('[', '(').replace(']', ')'),
+                    node.line
                 ))
 
         return CType(func_symbol.type.name)

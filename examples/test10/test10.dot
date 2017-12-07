@@ -1,0 +1,185 @@
+digraph astgraph {
+  node [shape=circle, fontsize=12, fontname="Courier", height=.1];
+  ranksep=.3;
+  edge [arrowsize=.5]
+
+  node1 [label="Program"]
+  node2 [label="Include:stdio"]
+  node1 -> node2
+  node3 [label="VarDecl"]
+  node4 [label="a"]
+  node3 -> node4
+  node5 [label="int"]
+  node3 -> node5
+  node1 -> node3
+  node6 [label="="]
+  node7 [label="a"]
+  node6 -> node7
+  node8 [label="2"]
+  node6 -> node8
+  node1 -> node6
+  node9 [label="VarDecl"]
+  node10 [label="b"]
+  node9 -> node10
+  node11 [label="int"]
+  node9 -> node11
+  node1 -> node9
+  node12 [label="="]
+  node13 [label="b"]
+  node12 -> node13
+  node14 [label="2"]
+  node12 -> node14
+  node1 -> node12
+  node15 [label="VarDecl"]
+  node16 [label="b"]
+  node15 -> node16
+  node17 [label="int"]
+  node15 -> node17
+  node1 -> node15
+  node18 [label="FunctionDecl:test"]
+  node19 [label="Param"]
+  node20 [label="a"]
+  node19 -> node20
+  node21 [label="int"]
+  node19 -> node21
+  node18 -> node19
+  node22 [label="Param"]
+  node23 [label="b"]
+  node22 -> node23
+  node24 [label="int"]
+  node22 -> node24
+  node18 -> node22
+  node25 [label="CompoundStmt"]
+  node26 [label="ReturnStmt"]
+  node27 [label="Expression"]
+  node28 [label="+"]
+  node29 [label="a"]
+  node30 [label="b"]
+  node28 -> node29
+  node28 -> node30
+  node27 -> node28
+  node26 -> node27
+  node25 -> node26
+  node18 -> node25
+  node1 -> node18
+  node31 [label="FunctionDecl:main"]
+  node32 [label="Param"]
+  node33 [label="a"]
+  node32 -> node33
+  node34 [label="int"]
+  node32 -> node34
+  node31 -> node32
+  node35 [label="Param"]
+  node36 [label="b"]
+  node35 -> node36
+  node37 [label="int"]
+  node35 -> node37
+  node31 -> node35
+  node38 [label="CompoundStmt"]
+  node39 [label="VarDecl"]
+  node40 [label="a"]
+  node39 -> node40
+  node41 [label="int"]
+  node39 -> node41
+  node38 -> node39
+  node42 [label="Expression"]
+  node43 [label="="]
+  node44 [label="a"]
+  node43 -> node44
+  node45 [label="+"]
+  node46 [label="2"]
+  node47 [label="3"]
+  node45 -> node46
+  node45 -> node47
+  node43 -> node45
+  node42 -> node43
+  node38 -> node42
+  node48 [label="IfStmt"]
+  node49 [label="Expression"]
+  node50 [label="&&"]
+  node51 [label="<"]
+  node52 [label="+"]
+  node53 [label="a"]
+  node54 [label="2"]
+  node52 -> node53
+  node52 -> node54
+  node55 [label="5"]
+  node51 -> node52
+  node51 -> node55
+  node56 [label="||"]
+  node57 [label=">"]
+  node58 [label="2"]
+  node59 [label="5"]
+  node57 -> node58
+  node57 -> node59
+  node60 [label="-"]
+  node61 [label="3"]
+  node62 [label="1"]
+  node60 -> node61
+  node60 -> node62
+  node56 -> node57
+  node56 -> node60
+  node50 -> node51
+  node50 -> node56
+  node49 -> node50
+  node48 -> node49 [label="condition"]
+  node63 [label="CompoundStmt"]
+  node64 [label="Expression"]
+  node65 [label="="]
+  node66 [label="a"]
+  node65 -> node66
+  node67 [label="-"]
+  node68 [label="3"]
+  node69 [label="1"]
+  node67 -> node68
+  node67 -> node69
+  node65 -> node67
+  node64 -> node65
+  node63 -> node64
+  node48 -> node63 [label="IF block"]
+  node70 [label="CompoundStmt"]
+  node71 [label="Expression"]
+  node72 [label="="]
+  node73 [label="b"]
+  node72 -> node73
+  node74 [label="1"]
+  node72 -> node74
+  node71 -> node72
+  node70 -> node71
+  node48 -> node70 [label="ELSE block"]
+  node38 -> node48
+  node75 [label="IfStmt"]
+  node76 [label="Expression"]
+  node77 [label="-"]
+  node78 [label="a"]
+  node79 [label="5"]
+  node77 -> node78
+  node77 -> node79
+  node76 -> node77
+  node75 -> node76 [label="condition"]
+  node80 [label="Expression"]
+  node81 [label="="]
+  node82 [label="a"]
+  node81 -> node82
+  node83 [label="2"]
+  node81 -> node83
+  node80 -> node81
+  node75 -> node80 [label="IF block"]
+  node84 [label="Expression"]
+  node85 [label="="]
+  node86 [label="b"]
+  node85 -> node86
+  node87 [label="3"]
+  node85 -> node87
+  node84 -> node85
+  node75 -> node84 [label="ELSE block"]
+  node38 -> node75
+  node88 [label="ReturnStmt"]
+  node89 [label="Expression"]
+  node90 [label="0"]
+  node89 -> node90
+  node88 -> node89
+  node38 -> node88
+  node31 -> node38
+  node1 -> node31
+}

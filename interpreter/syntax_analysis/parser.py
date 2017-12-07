@@ -40,7 +40,7 @@ class Parser(object):
 
     def declarations(self):
         """
-        declarations                : (include_library | function_declaration | var_declaration_list)*
+        declarations                : (include_library | function_declaration | declaration_list)*
         """
         declarations = []
 
@@ -90,7 +90,7 @@ class Parser(object):
 
     def function_declaration(self):
         """
-        function_declaration        : type_spec ID LPAREN parameters RPAREN block
+        function_declaration        : type_spec ID LPAREN parameters RPAREN compound_statement
         """
         type_node = self.type_spec()
         func_name = self.current_token.value
@@ -107,8 +107,7 @@ class Parser(object):
 
     def parameters(self):
         """
-        parameters                  : empty
-                                    | type_spec variable (COMMA type_spec variable)*
+        parameters                  : type_spec variable (COMMA type_spec variable)*
         """
         nodes = []
         if self.current_token.type != RPAREN:
@@ -119,12 +118,18 @@ class Parser(object):
         return nodes
 
     def declaration_list(self):
-        result = [self.declaration()]
+        """
+        declaration_list            : declaration+
+        """
+        result = self.declaration()
         while self.current_token.type == (INT, FLOAT, DOUBLE):
-            result.append(self.declaration())
+            result.extend(self.declaration())
         return result
 
     def declaration(self):
+        """
+        declaration                 : type_spec init_declarator_list SEMICOLON
+        """
         result = list()
         type_node = self.type_spec()
         for node in self.init_declarator_list():
@@ -139,14 +144,20 @@ class Parser(object):
         return result
 
     def init_declarator_list(self):
+        """
+        init_declarator_list        : init_declarator (COMMA init_declarator)*
+        """
         result = list()
-        result.append(self.init_declarator())
+        result.extend(self.init_declarator())
         while self.current_token.type == COMMA:
             self.eat(COMMA)
             result.extend(self.init_declarator())
         return result
 
     def init_declarator(self):
+        """
+        init_declarator             : variable (ASSIGN assignment_expression)?
+        """
         var = self.variable()
         result = list()
         result.append(var)
@@ -157,6 +168,13 @@ class Parser(object):
         return result
 
     def statement(self):
+        """
+        statement                   : iteration_statement
+                                    | selection_statement
+                                    | jump_statement
+                                    | compound_statement
+                                    | expression_statement
+        """
         if self.check_iteration_statement():
             return self.iteration_statement()
         elif self.check_selection_statement():
@@ -167,10 +185,14 @@ class Parser(object):
             return self.compound_statement()
         return self.expression_statement()
 
+    @restorable
     def check_compound_statement(self):
         return self.current_token.type == LBRACKET
 
     def compound_statement(self):
+        """
+        compound_statement          : LBRACKET (declaration_list | statement)* RBRACKET
+        """
         result = []
         self.eat(LBRACKET)
         while self.current_token.type != RBRACKET:
@@ -183,15 +205,22 @@ class Parser(object):
             children=result
         )
 
+    @restorable
     def check_jump_statement(self):
         return self.current_token.type in (RETURN, BREAK, CONTINUE)
 
     def jump_statement(self):
+        """
+        jump_statement              : RETURN expression? SEMICOLON
+                                    | BREAK SEMICOLON
+                                    | CONTINUE SEMICOLON
+        """
         if self.current_token.type == RETURN:
             self.eat(RETURN)
             expression = NoOp()
             if self.current_token.type != SEMICOLON:
                 expression = self.expression()
+            self.eat(SEMICOLON)
             return ReturnStmt(
                 expression = expression
             )
@@ -205,10 +234,14 @@ class Parser(object):
             self.eat(SEMICOLON)
             return BreakStmt()
 
+    @restorable
     def check_selection_statement(self):
         return self.current_token.type == IF
 
     def selection_statement(self):
+        """
+        selection_statement         : IF LPAREN expression RPAREN statement (ELSE statement)?
+        """
         if self.current_token.type == IF:
             self.eat(IF)
             self.eat(LPAREN)
@@ -224,12 +257,17 @@ class Parser(object):
                 tbody=tstatement,
                 fbody=fstatement
             )
-        # TODO: Switch
 
+    @restorable
     def check_iteration_statement(self):
         return self.current_token.type in (WHILE, DO, FOR)
 
     def iteration_statement(self):
+        """
+        iteration_statement         : WHILE LPAREN expression RPAREN statement
+                                    | DO statement WHILE LPAREN expression RPAREN SEMICOLON
+                                    | FOR LPAREN expression_statement expression_statement (expression)? RPAREN statement
+        """
         if self.current_token.type == WHILE:
             self.eat(WHILE)
             self.eat(LPAREN)
@@ -247,6 +285,7 @@ class Parser(object):
             self.eat(LPAREN)
             expression = self.expression()
             self.eat(RPAREN)
+            self.eat(SEMICOLON)
             return DoWhileStmt(
                 condition=expression,
                 body=statement
@@ -269,6 +308,9 @@ class Parser(object):
             )
 
     def expression_statement(self):
+        """
+        expression_statement        : expression* SEMICOLON
+        """
         node = None
         if self.current_token.type != SEMICOLON:
             node = self.expression()
@@ -276,9 +318,15 @@ class Parser(object):
         return node and node or NoOp()
 
     def constant_expression(self):
+        """
+        constant_expression         : conditional_expression
+        """
         return self.conditional_expression()
 
     def expression(self):
+        """
+        expression                  : assignment_expression (COMMA assignment_expression)*
+        """
         result = list()
         result.append(self.assignment_expression())
         while self.current_token.type == COMMA:
@@ -296,6 +344,10 @@ class Parser(object):
         return False
 
     def assignment_expression(self):
+        """
+        assignment_expression       : assignment_expression (COMMA assignment_expression)*
+                                    | conditional_expression
+        """
         if self.check_assignment_expression():
             node = self.variable()
             while self.current_token.type.endswith('ASSIGN'):
@@ -309,6 +361,9 @@ class Parser(object):
         return self.conditional_expression()
 
     def conditional_expression(self):
+        """
+        conditional_expression      : logical_and_expression (QUESTION_MARK expression COLON conditional_expression)?
+        """
         node = self.logical_and_expression()
         if self.current_token.type == QUESTION_MARK:
             self.eat(QUESTION_MARK)
@@ -319,6 +374,9 @@ class Parser(object):
         return node
 
     def logical_and_expression(self):
+        """
+        logical_and_expression      : logical_or_expression (LOG_AND_OP logical_or_expression)*
+        """
         node = self.logical_or_expression()
         while self.current_token.type == LOG_AND_OP:
             token = self.current_token
@@ -327,6 +385,9 @@ class Parser(object):
         return node
 
     def logical_or_expression(self):
+        """
+        logical_or_expression       : inclusive_or_expression (LOG_OR_OP inclusive_or_expression)*
+        """
         node = self.inclusive_or_expression()
         while self.current_token.type == LOG_OR_OP:
             token = self.current_token
@@ -335,6 +396,9 @@ class Parser(object):
         return node
 
     def inclusive_or_expression(self):
+        """
+        inclusive_or_expression     : exclusive_or_expression (OR_OP exclusive_or_expression)*
+        """
         node = self.exclusive_or_expression()
         while self.current_token.type == OR_OP:
             token = self.current_token
@@ -343,6 +407,9 @@ class Parser(object):
         return node
 
     def exclusive_or_expression(self):
+        """
+        exclusive_or_expression     : and_expression (XOR_OP and_expression)*
+        """
         node = self.and_expression()
         while self.current_token.type == XOR_OP:
             token = self.current_token
@@ -351,6 +418,9 @@ class Parser(object):
         return node
 
     def and_expression(self):
+        """
+        and_expression              : equality_expression (AND_OP equality_expression)*
+        """
         node = self.equality_expression()
         while self.current_token.type == AND_OP:
             token = self.current_token
@@ -359,8 +429,11 @@ class Parser(object):
         return node
 
     def equality_expression(self):
+        """
+        equality_expression         : relational_expression ((EQ_OP | NE_OP) relational_expression)*
+        """
         node = self.relational_expression()
-        if self.current_token.type in (EQ_OP, NE_OP):
+        while self.current_token.type in (EQ_OP, NE_OP):
             token = self.current_token
             self.eat(token.type)
             return BinOp(left=node, op=token, right=self.relational_expression())
@@ -368,18 +441,21 @@ class Parser(object):
 
     def relational_expression(self):
         """
-        logic_expr                  : arithm_expr ((LE | LT | GE | GT) arithm_expr)?
+        relational_expression       : shift_expression ((LE_OP | LT_OP | GE_OP | GT_OP) shift_expression)*
         """
         node = self.shift_expression()
-        if self.current_token.type in (LE_OP, LT_OP, GE_OP, GT_OP):
+        while self.current_token.type in (LE_OP, LT_OP, GE_OP, GT_OP):
             token = self.current_token
             self.eat(token.type)
             return BinOp(left=node, op=token, right=self.shift_expression())
         return node
 
     def shift_expression(self):
+        """
+        shift_expression            : additive_expression ((LEFT_OP | RIGHT_OP) additive_expression)*
+        """
         node = self.additive_expression()
-        if self.current_token.type in (LEFT_OP, RIGHT_OP):
+        while self.current_token.type in (LEFT_OP, RIGHT_OP):
             token = self.current_token
             self.eat(token.type)
             return BinOp(left=node, op=token, right=self.additive_expression())
@@ -387,7 +463,7 @@ class Parser(object):
 
     def additive_expression(self):
         """
-        arithm_expr                 : term ((PLUS | MINUS) term)*
+        additive_expression         : multiplicative_expression ((ADD_OP | SUB_OP) multiplicative_expression)*
         """
         node = self.multiplicative_expression()
 
@@ -400,7 +476,7 @@ class Parser(object):
 
     def multiplicative_expression(self):
         """
-        term                        : factor ((MUL | DIV) factor)*
+        multiplicative_expression   : cast_expression ((MUL_OP | DIV_OP | MOD_OP) cast_expression)*
         """
         node = self.cast_expression()
         while self.current_token.type in (MUL_OP, DIV_OP, MOD_OP):
@@ -419,6 +495,10 @@ class Parser(object):
         return False
 
     def cast_expression(self):
+        """
+        multiplicative_expression   : LPAREN type_spec RPAREN cast_expression
+                                    | unary_expression
+        """
         if self.check_cast_expression():
             self.eat(LPAREN)
             type_node = self.type_spec()
@@ -428,6 +508,15 @@ class Parser(object):
             return self.unary_expression()
 
     def unary_expression(self):
+        """
+        unary_expression            : INC_OP unary_expression
+                                    | DEC_OP unary_expression
+                                    | AND_OP cast_expression
+                                    | ADD_OP cast_expression
+                                    | SUB_OP cast_expression
+                                    | LOG_NEG cast_expression
+                                    | postfix_expression
+        """
         if self.current_token.type in (INC_OP, DEC_OP):
             token = self.current_token
             self.eat(token.type)
@@ -440,6 +529,11 @@ class Parser(object):
             return self.postfix_expression()
 
     def postfix_expression(self):
+        """
+        unary_expression            : primary_expression INC_OP
+                                    | primary_expression DEC_OP
+                                    | primary_expression LPAREN argument_expression_list? RPAREN
+        """
         node = self.primary_expression()
         if self.current_token.type in (INC_OP, DEC_OP):
             token = self.current_token
@@ -450,19 +544,32 @@ class Parser(object):
             args = list()
             if not self.current_token.type == RPAREN:
                 args = self.argument_expression_list()
+            self.eat(RPAREN)
+            if not isinstance(node, Var):
+                self.error("Function identifier must be string")
             node = FunctionCall(
-                name=node,
+                name=node.value,
                 args=args
             )
         return node
 
     def argument_expression_list(self):
+        """
+        argument_expression_list    : assignment_expression (COMMA assignment_expression)*
+        """
         args = [self.assignment_expression()]
         while self.current_token.type == COMMA:
+            self.eat(COMMA)
             args.append(self.assignment_expression())
         return args
 
     def primary_expression(self):
+        """
+        primary_expression          : LPAREN expression RPAREN
+                                    | constant
+                                    | string
+                                    | variable
+        """
         token = self.current_token
         if token.type == LPAREN:
             self.eat(LPAREN)
@@ -477,12 +584,16 @@ class Parser(object):
             return self.variable()
 
     def constant(self):
+        """
+        constant                    : INTEGER_CONST
+                                    | REAL_CONST
+        """
         token = self.current_token
         if token.type == INTEGER_CONST:
             self.eat(INTEGER_CONST)
             return Num(token)
         elif token.type == REAL_CONST:
-            self.eat(INTEGER_CONST)
+            self.eat(REAL_CONST)
             return Num(token)
 
     def type_spec(self):
@@ -506,32 +617,6 @@ class Parser(object):
         """An empty production"""
         return NoOp()
 
-    def function_call(self):
-        """
-        function_call               : ID LPAREN RPAREN
-                                    | ID LPAREN call_param (COMMA call_param)* RPAREN
-        """
-        func_name = self.current_token.value
-        params = list()
-        self.eat(ID)
-        self.eat(LPAREN)
-        if self.current_token.type != RPAREN:
-            params.append(self.call_param())
-            while self.current_token.type == COMMA:
-                self.eat(COMMA)
-                params.append(self.call_param())
-        self.eat(RPAREN)
-        return FunctionCall(
-            func_name=func_name,
-            params=params
-        )
-
-    def call_param(self):
-        if self.current_token.type == STRING:
-            return self.string()
-        else:
-            return self.expr()
-
     def string(self):
         """
         string                      : STRING
@@ -541,6 +626,106 @@ class Parser(object):
         return String(token)
 
     def parse(self):
+        """
+        program                     : declarations
+
+        declarations                : (include_library | function_declaration | declaration_list)*
+
+        include_library             : HASH ID<'include'> LESS_THAN ID DOT ID<'h'> GREATER_THAN
+
+        function_declaration        : type_spec ID LPAREN parameters RPAREN compound_statement
+
+        parameters                  : type_spec variable (COMMA type_spec variable)*
+
+        declaration_list            : declaration+
+
+        declaration                 : type_spec init_declarator_list SEMICOLON
+
+        init_declarator_list        : init_declarator (COMMA init_declarator)*
+
+        init_declarator             : variable (ASSIGN assignment_expression)?
+
+        statement                   : iteration_statement
+                                    | selection_statement
+                                    | jump_statement
+                                    | compound_statement
+                                    | expression_statement
+
+        compound_statement          : LBRACKET (declaration_list | statement)* RBRACKET
+
+        jump_statement              : RETURN expression? SEMICOLON
+                                    | BREAK SEMICOLON
+                                    | CONTINUE SEMICOLON
+
+        selection_statement         : IF LPAREN expression RPAREN statement (ELSE statement)?
+
+        iteration_statement         : WHILE LPAREN expression RPAREN statement
+                                    | DO statement WHILE LPAREN expression RPAREN SEMICOLON
+                                    | FOR LPAREN expression_statement expression_statement (expression)? RPAREN statement
+
+        expression_statement        : expression* SEMICOLON
+
+        constant_expression         : conditional_expression
+
+        expression                  : assignment_expression (COMMA assignment_expression)*
+
+        assignment_expression       : assignment_expression (COMMA assignment_expression)*
+                                    | conditional_expression
+
+        conditional_expression      : logical_and_expression (QUESTION_MARK expression COLON conditional_expression)?
+
+        logical_and_expression      : logical_or_expression (LOG_AND_OP logical_or_expression)*
+
+        logical_or_expression       : inclusive_or_expression (LOG_OR_OP inclusive_or_expression)*
+
+        inclusive_or_expression     : exclusive_or_expression (OR_OP exclusive_or_expression)*
+
+        exclusive_or_expression     : and_expression (XOR_OP and_expression)*
+
+        and_expression              : equality_expression (AND_OP equality_expression)*
+
+        equality_expression         : relational_expression ((EQ_OP | NE_OP) relational_expression)*
+
+        relational_expression       : shift_expression ((LE_OP | LT_OP | GE_OP | GT_OP) shift_expression)*
+
+        shift_expression            : additive_expression ((LEFT_OP | RIGHT_OP) additive_expression)*
+
+        additive_expression         : multiplicative_expression ((ADD_OP | SUB_OP) multiplicative_expression)*
+
+        multiplicative_expression   : cast_expression ((MUL_OP | DIV_OP | MOD_OP) cast_expression)*
+
+        multiplicative_expression   : LPAREN type_spec RPAREN cast_expression
+                                    | unary_expression
+
+        unary_expression            : INC_OP unary_expression
+                                    | DEC_OP unary_expression
+                                    | AND_OP cast_expression
+                                    | ADD_OP cast_expression
+                                    | SUB_OP cast_expression
+                                    | LOG_NEG cast_expression
+                                    | postfix_expression
+
+        unary_expression            : primary_expression INC_OP
+                                    | primary_expression DEC_OP
+                                    | primary_expression LPAREN argument_expression_list? RPAREN
+
+        argument_expression_list    : assignment_expression (COMMA assignment_expression)*
+
+        primary_expression          : LPAREN expression RPAREN
+                                    | constant
+                                    | string
+                                    | variable
+
+        constant                    : INTEGER_CONST
+                                    | REAL_CONST
+
+        type_spec                   : TYPE
+
+        variable                    : ID
+
+        string                      : STRING
+
+        """
         node = self.program()
         if self.current_token.type != EOF:
             self.error("Expected token <EOF> but found <{}>".format(self.current_token.type))

@@ -9,9 +9,17 @@ int test(int a, int b){
 int main(int a, int b){
     int a = 2;
     for(a = 0, b = 3; a < 5; i=i+1){
-        printf("%d\n", a);
+
+    }
+    printf("%d %d", a, b);
+
+    while(a = 1){
+        test(1, 2);
     }
 
-    printf("%d", test(1, 3));
+    do{
+
+    }while(a = 1);
+
     return 0;
 }

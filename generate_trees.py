@@ -15,5 +15,5 @@ for dir_name in sorted(os.listdir(path)):
         png_filename,
         dot_filename,
     ))
-    break
+    # break
 print("FINISHED")

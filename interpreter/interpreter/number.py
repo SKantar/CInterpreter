@@ -52,18 +52,3 @@ class Number(object):
 
     def __str__(self):
         return self.__repr__()
-#
-#
-# a = Number('char', 1)
-# b = Number('int', 2)
-# c = Number('float', 3.0)
-# d = Number('double', 4.1)
-#
-# print(b % a)
-
-def asd():
-    print("asd")
-
-import math
-
-print(callable(math))

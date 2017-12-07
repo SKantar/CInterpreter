@@ -14,14 +14,15 @@ class SemanticAnalyzerTestCase(unittest.TestCase):
     def test_analyzer(self):
         self.analyze("""
             #include <stdio.h>
+            #include <math.h>
             int a, b;
             int test(int a){
             
             }
-            
             int main(int a){
                 int b;
                 int c = a + b;
+                double d;
                 scanf("%d %d", &a, &d);
                 
                 if(a + 5){
@@ -30,10 +31,11 @@ class SemanticAnalyzerTestCase(unittest.TestCase):
                     b = 2;
                 }
                 
-                int r = test(d);
+                int r = (double)test(a);
                 printf("%d", c + 2);
                 return 0;
             }
+            
         """)
 
     # def test_analyzer_with_error(self):

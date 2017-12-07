@@ -1,4 +1,5 @@
 from .memory import *
+from .number import Number
 from ..lexical_analysis.lexer import Lexer
 from ..lexical_analysis.token_type import *
 from ..syntax_analysis.parser import Parser
@@ -38,27 +39,27 @@ class Interpreter(NodeVisitor):
         self.memory[var_name] = var_value
 
     def visit_BinOp(self, node):
-        if node.op.type == PLUS:
+        if node.op.type == ADD_OP:
             return self.visit(node.left) + self.visit(node.right)
-        elif node.op.type == MINUS:
+        elif node.op.type == SUB_OP:
             return self.visit(node.left) - self.visit(node.right)
-        elif node.op.type == MUL:
+        elif node.op.type == MUL_OP:
             return self.visit(node.left) * self.visit(node.right)
-        elif node.op.type == LT:
+        elif node.op.type == LT_OP:
             return self.visit(node.left) < self.visit(node.right)
-        elif node.op.type == GT:
+        elif node.op.type == GT_OP:
             return self.visit(node.left) > self.visit(node.right)
-        elif node.op.type == LE:
+        elif node.op.type == LE_OP:
             return self.visit(node.left) <= self.visit(node.right)
-        elif node.op.type == GE:
+        elif node.op.type == GE_OP:
             return self.visit(node.left) >= self.visit(node.right)
-        elif node.op.type == EQ:
+        elif node.op.type == EQ_OP:
             return self.visit(node.left) == self.visit(node.right)
-        elif node.op.type == NE:
+        elif node.op.type == NE_OP:
             return self.visit(node.left) != self.visit(node.right)
-        elif node.op.type == AND:
+        elif node.op.type == LOG_AND_OP:
             return self.visit(node.left) and self.visit(node.right)
-        elif node.op.type == OR:
+        elif node.op.type == LOG_OR_OP:
             return self.visit(node.left) or self.visit(node.right)
 
     def visit_Num(self, node):

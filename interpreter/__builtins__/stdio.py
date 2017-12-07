@@ -2,16 +2,23 @@
 This module file supports basic functions from stdio.h library
 """
 
-def printf(*args, memory=None):
+from .utils import definition
+
+@definition(return_type='int', arg_types=None)
+def printf(*args):
     """ basic printf function
     example:
         printf("%d %d", 1, 2);
     """
     fmt, *params = args
     fmt = fmt.replace('\\n', '\n')
-    print(fmt % tuple(params), end='')
+    message = fmt % tuple(params)
+    result = len(message)
+    print(message, end='')
+    return result
 
-def scanf(*args, memory=None):
+@definition(return_type='int', arg_types=None)
+def scanf(*args):
     """ basic printf function
         example:
             scanf("%d %d", 'a', 'b');
@@ -37,4 +44,4 @@ def scanf(*args, memory=None):
         elements.extend(str.split())
     for flag, param, val in zip(all_flags, params, elements):
         memory[param] = cast(flag)(val)
-
+    return len(elements)

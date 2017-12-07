@@ -10,50 +10,115 @@ class ParserTestCase(unittest.TestCase):
         parser = Parser(lexer)
         return parser
 
-    # def test_conditional_function(self):
-    #     parser = self.makeParser("""
-    #         a = b = c = !a + 5 + 5 ^ 1;
-    #     """)
-    #     parser.parse()
-    #
-    # def test_cast_function(self):
-    #     parser = self.makeParser("""
-    #         a = (int)a;
-    #     """)
-    #     parser.parse()
-    #
-    # def test_inc_dec_function(self):
-    #     parser = self.makeParser("""
-    #         b = ++a - --b;
-    #     """)
-    #     parser.parse()
-    #
-    # def test_expr_function(self):
-    #     parser = self.makeParser("""
-    #         !a + 5 + 5 ^ 1;
-    #     """)
-    #     parser.parse()
 
-    def test_stmt_function(self):
+    def test_libraries(self):
         parser = self.makeParser("""
+            #include <stdio.h>
+            #include <stdlib.h>
+            #include <math.h>
+        """)
+        parser.parse()
+
+    def test_functions(self):
+        parser = self.makeParser("""
+           int main(){
+           
+           }
+           
+           int test(int a, int b){
+                
+           }
+            
+        """)
+        parser.parse()
+
+    def test_declarations(self):
+        parser = self.makeParser("""
+            int a, b = 2;
             int main(){
-                int a = c = 1 + 2, b = 3 + 3, c;
-            
-                if(a < 5){
-                    a = 2;
-                }else{
-                    b = 3;
-                }
-                
-                for(i = 0, i = 2; ; ){
-                    a = 2;
-                }
-                
-                return a + b;
-                
-                return a < b ? b : a;
+                int a, b = 3, c = 1 - b ++;
+                a = a ^ b | b - 1 * 5 / (double)c - a++;
             }
-            
+        """)
+        parser.parse()
+
+    def test_function_call(self):
+        parser = self.makeParser("""
+            int a, b = 2;
+            int main(){
+                int a = printf("%d %d", b, c);
+            }
+        """)
+        parser.parse()
+
+    def test_if_stmt(self):
+        parser = self.makeParser("""
+            int a, b = 2;
+            int main(){
+                if(a = b)
+                    b = 1;
+                if(c == d | v)
+                    a = 1;
+                else
+                    b = 1;
+                    
+                if(a == 1){
+                    b = 1;
+                    c = 1;
+                }else{
+                    c = 2;
+                    e = 1;
+                }  
+                
+                if(a == 1)
+                    b = 1;
+                else if (b == 1)
+                    c = 5;  
+                    
+            }
+        """)
+        parser.parse()
+
+    def test_for_stmt(self):
+        parser = self.makeParser("""
+            int a, b = 2;
+            int main(){
+                for(i = 0; i < n; i ++){
+                    a = 1;
+                }
+                
+                for(i = 1, b = 2; i > 1; i --){
+                    b - 1;
+                }
+                
+                for( i = 1, b = 2, c = 1; i < 1; i --, b++)
+                    for(j = 0; j < 5; j ++)
+                        for(;;){
+                        
+                        }
+
+            }
+        """)
+        parser.parse()
+
+    def test_while_do_stmt(self):
+        parser = self.makeParser("""
+            int a, b = 2;
+            int main(){
+                while(i < 1){
+                    b = 1;
+                }
+                
+                while(a > b)
+                    while(b == 1){
+                        a = 1;
+                    }
+                    
+                do{
+                    a = 1;
+                }while(a < 5);
+
+            }
         """)
         parser.parse()
 

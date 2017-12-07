@@ -1,3 +1,10 @@
+"""
+This module file supports basic functions from math.h library
+"""
+
+from .utils import definition
 import math
-def sqrt(a, memory=None):
+
+@definition(return_type='double', arg_types=['double'])
+def sqrt(a):
     return math.sqrt(a)

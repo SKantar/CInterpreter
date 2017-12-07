@@ -20,6 +20,5 @@ int main(int a, int b){
     else
         b = 3;
 
-    printf("%d", test(1, 3));
     return 0;
 }

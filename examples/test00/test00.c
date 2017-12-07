@@ -1,1 +1,4 @@
-a = b = c = !a + 5 + 5 ^ 1 + --a
+int main(){
+
+    return 0;
+}

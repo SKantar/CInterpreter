@@ -698,7 +698,7 @@ class Parser(object):
             node = self.expression()
             self.eat(RPAREN)
             return node
-        elif token.type in (INTEGER_CONST, REAL_CONST):
+        elif token.type in (INTEGER_CONST, REAL_CONST, CHAR_CONST):
             return self.constant()
         elif token.type == STRING:
             return self.string()

@@ -96,7 +96,7 @@ class Lexer(object):
         if self.current_char != '\'':
             self.error("CHAR PROBLEM")
         self.advance()
-        return Token(CHAR, ord(char))
+        return Token(CHAR_CONST, ord(char))
 
     def _id(self):
         """ Handle identifiers and reserved keywords """

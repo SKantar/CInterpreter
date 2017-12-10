@@ -22,6 +22,18 @@ def restorable(fn):
         return result
     return wrapper
 
+
+def definition(return_type=None, arg_types=[]):
+    def wrapper_decorator(fn):
+        @wraps(fn)
+        def wrapper(*args, **kwargs):
+            return fn(*args, **kwargs)
+        wrapper.return_type = return_type
+        wrapper.arg_types = arg_types
+        return wrapper
+    return wrapper_decorator
+
+
 def get_name(name):
     if name[-2:].isdigit():
         return '{}{:02d}'.format(
@@ -44,5 +56,9 @@ class MessageColor:
     ENDC = '\033[0m'
     BOLD = '\033[1m'
     UNDERLINE = '\033[4m'
+
+
+
+
 
 

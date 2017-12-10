@@ -80,6 +80,17 @@ class ASTVisualizer(NodeVisitor):
             s = '  node{} -> node{}\n'.format(node._num, child._num)
             self.dot_body.append(s)
 
+    def visit_FunctionBody(self, node, *args, **kwargs):
+        s = '  node{} [label="FunctionBody"]\n'.format(self.ncount)
+        self.dot_body.append(s)
+        node._num = self.ncount
+        self.ncount += 1
+
+        for child in node.children:
+            self.visit(child)
+            s = '  node{} -> node{}\n'.format(node._num, child._num)
+            self.dot_body.append(s)
+
     def visit_Param(self, node, *args, **kwargs):
         s = '  node{} [label="Param"]\n'.format(self.ncount)
         self.dot_body.append(s)

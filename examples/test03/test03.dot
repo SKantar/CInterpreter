@@ -11,7 +11,7 @@ digraph astgraph {
   node5 [label="int"]
   node3 -> node5
   node2 -> node3
-  node6 [label="CompoundStmt"]
+  node6 [label="FunctionBody"]
   node2 -> node6
   node1 -> node2
   node7 [label="FunctionDecl:main"]
@@ -27,7 +27,7 @@ digraph astgraph {
   node13 [label="int"]
   node11 -> node13
   node7 -> node11
-  node14 [label="CompoundStmt"]
+  node14 [label="FunctionBody"]
   node7 -> node14
   node1 -> node7
 }

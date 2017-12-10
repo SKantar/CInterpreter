@@ -5,7 +5,7 @@ from ..lexical_analysis.token_type import *
 from ..syntax_analysis.parser import Parser
 from ..syntax_analysis.tree import *
 from ..semantic_analysis.analyzer import SemanticAnalyzer
-from ..utils.utils import import_module, MessageColor
+from ..utils.utils import get_all_module_func, MessageColor
 
 class Interpreter(NodeVisitor):
 
@@ -18,25 +18,94 @@ class Interpreter(NodeVisitor):
 
     def load_libraries(self, tree):
         for node in filter(lambda o: isinstance(o, IncludeLibrary), tree.children):
-            lib = import_module('interpreter.__builtins__.{}'.format(
+            functions = get_all_module_func('interpreter.__builtins__.{}'.format(
                 node.library_name
             ))
 
-            for attr in dir(lib):
-                if not attr.startswith('__'):
-                    self.memory[attr] = getattr(lib, attr)
+            for function in functions:
+                self.memory[function.__name__] = function
 
     def visit_Program(self, node):
         for var in filter(lambda self: not isinstance(self, (FunctionDecl, IncludeLibrary)), node.children):
             self.visit(var)
 
     def visit_VarDecl(self, node):
-        self.memory[node.var_node.value] = None
+        self.memory.declare(node.var_node.value)
+
+    def visit_FunctionDecl(self, node):
+        for i, param in enumerate(node.params):
+            self.memory[param.var_node.value] = self.memory.stack.current_frame.current_scope._values.pop(i)
+        return self.visit(node.body)
+
+    def visit_FunctionBody(self, node):
+        for child in node.children:
+            if isinstance(child, ReturnStmt):
+                return self.visit(child)
+            self.visit(child)
+
+    def visit_Expression(self, node):
+        expr = None
+        for child in node.children:
+            expr = self.visit(child)
+        return expr
+
+    def visit_FunctionCall(self, node):
+
+        args = [self.visit(arg) for arg in node.args]
+        if node.name == 'scanf':
+            args.append(self.memory)
+
+        if isinstance(self.memory[node.name], Node):
+            self.memory.new_frame(node.name)
+
+            for i, arg in enumerate(args):
+                self.memory.declare(i)
+                self.memory[i] = arg
+
+            res = self.visit(self.memory[node.name])
+            self.memory.del_frame()
+            return res
+        else:
+            return self.memory[node.name](*args)
+
+    def visit_UnOp(self, node):
+        if node.op.type == AND_OP:
+            return node.expr.value
+        return self.visit(node.expr)
+
+    def visit_CompoundStmt(self, node):
+        self.memory.new_scope()
+
+        for child in node.children:
+            self.visit(child)
+
+        self.memory.del_scope()
+
+    def visit_ReturnStmt(self, node):
+        return self.visit(node.expression)
+
+    def visit_Num(self, node):
+        if node.token.type == INTEGER_CONST:
+            return Number(ttype="int", value=node.value)
+        else:
+            return Number(ttype="float", value=node.value)
+
+    def visit_Var(self, node):
+        return self.memory[node.value]
 
     def visit_Assign(self, node):
         var_name = node.left.value
-        var_value = self.visit(node.right)
-        self.memory[var_name] = var_value
+        if node.op.type == ADD_ASSIGN:
+            self.memory[var_name] += self.visit(node.right)
+        elif node.op.type == SUB_ASSIGN:
+            self.memory[var_name] -= self.visit(node.right)
+        elif node.op.type == MUL_ASSIGN:
+            self.memory[var_name] *= self.visit(node.right)
+        elif node.op.type == DIV_ASSIGN:
+            self.memory[var_name] /= self.visit(node.right)
+            pass
+        else:
+            self.memory[var_name] = self.visit(node.right)
 
     def visit_BinOp(self, node):
         if node.op.type == ADD_OP:
@@ -45,6 +114,10 @@ class Interpreter(NodeVisitor):
             return self.visit(node.left) - self.visit(node.right)
         elif node.op.type == MUL_OP:
             return self.visit(node.left) * self.visit(node.right)
+        elif node.op.type == DIV_OP:
+            return self.visit(node.left) / self.visit(node.right)
+        elif node.op.type == MOD_OP:
+            return self.visit(node.left) % self.visit(node.right)
         elif node.op.type == LT_OP:
             return self.visit(node.left) < self.visit(node.right)
         elif node.op.type == GT_OP:
@@ -62,92 +135,48 @@ class Interpreter(NodeVisitor):
         elif node.op.type == LOG_OR_OP:
             return self.visit(node.left) or self.visit(node.right)
 
-    def visit_Num(self, node):
-        return node.value
-
-    def visit_UnaryOp(self, node):
-        op = node.op.type
-        if op == PLUS:
-            return +self.visit(node.expr)
-        elif op == MINUS:
-            return -self.visit(node.expr)
-        elif op == AMPERSAND:
-            return node.expr.value
-        elif op == NOT:
-            return int(not bool(self.visit(node.expr)))
-
-    def visit_FunctionCall(self, node):
-
-        params = [self.visit(param) for param in node.params]
-
-        if isinstance(self.memory[node.func_name], Node):
-            self.memory.create_frame(node.func_name)
-
-            for i, param in enumerate(params):
-                self.memory[i] = param
-            res = self.visit(self.memory[node.func_name])
-            self.memory.remove_frame()
-            return res
-        else:
-            return self.memory[node.func_name](*params, memory=self.memory)
-
-    def visit_FunctionDecl(self, node):
-        for i, param in enumerate(node.params):
-            self.memory[param.var_node.value] = self.memory.stack.current_frame._values.pop(i)
-        return self.visit(node.body)
-
-    def visit_Body(self, node):
-        for child in node.children:
-            if isinstance(child, ReturnStmt):
-                return self.visit(child)
-            self.visit(child)
-
-    def visit_ReturnStmt(self, node):
-        return self.visit(node.expr)
-
-    def visit_Var(self, node):
-        return self.memory[node.value]
-
     def visit_String(self, node):
         return node.value
 
     def visit_IfStmt(self, node):
-        if self.visit(node.condition_stmt):
-            self.visit(node.if_body)
+        if self.visit(node.condition):
+            self.visit(node.tbody)
         else:
-            self.visit(node.else_body)
+            self.visit(node.fbody)
 
     def visit_WhileStmt(self, node):
-        while self.visit(node.condition_stmt):
+        while self.visit(node.condition):
             self.visit(node.body)
 
     def interpret(self, tree):
         self.load_libraries(tree)
         self.load_functions(tree)
         self.visit(tree)
-        self.memory.create_frame('main')
+        self.memory.new_frame('main')
         node = self.memory['main']
         res = self.visit(node)
-        self.memory.remove_frame()
+        # print(self.memory)
+        self.memory.del_frame()
         return res
 
     @staticmethod
     def run(program):
-        try:
-            lexer = Lexer(program)
-            parser = Parser(lexer)
-            tree = parser.parse()
-            SemanticAnalyzer.analyze(tree)
-            status = Interpreter().interpret(tree)
-        except Exception as message:
-            print("{}[{}] {} {}".format(
-                MessageColor.FAIL,
-                type(message).__name__,
-                message,
-                MessageColor.ENDC
-            ))
-            status = -1
-        print()
-        print(MessageColor.OKBLUE + "Process terminated with status {}".format(status) + MessageColor.ENDC)
+        # try:
+        lexer = Lexer(program)
+        parser = Parser(lexer)
+        tree = parser.parse()
+        SemanticAnalyzer.analyze(tree)
+        status = Interpreter().interpret(tree)
+        # print(status)
+        # except Exception as message:
+        #     print("{}[{}] {} {}".format(
+        #         MessageColor.FAIL,
+        #         type(message).__name__,
+        #         message,
+        #         MessageColor.ENDC
+        #     ))
+        #     status = -1
+        # print()
+        # print(MessageColor.OKBLUE + "Process terminated with status {}".format(status) + MessageColor.ENDC)
 
 

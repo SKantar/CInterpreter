@@ -5,7 +5,7 @@ digraph astgraph {
 
   node1 [label="Program"]
   node2 [label="FunctionDecl:main"]
-  node3 [label="CompoundStmt"]
+  node3 [label="FunctionBody"]
   node4 [label="ReturnStmt"]
   node5 [label="Expression"]
   node6 [label="0"]

@@ -3,6 +3,7 @@ from .token_type import *
 from .token import Token
 
 RESERVED_KEYWORDS = {
+    'char': Token(CHAR, 'char'),
     'int': Token(INT, 'int'),
     'float': Token(FLOAT, 'float'),
     'double': Token(DOUBLE, 'double'),
@@ -79,14 +80,23 @@ class Lexer(object):
         result = ''
         self.advance()
         while self.current_char is not '"':
-            if self.current_char in ('\n', None):
+            if self.current_char is None:
                 self.error(
                     message='Unfinished string with \'"\'at line {}'.format(self.line)
                 )
             result += self.current_char
             self.advance()
         self.advance()
-        return result
+        return Token(STRING, result)
+
+    def char(self):
+        self.advance()
+        char = self.current_char
+        self.advance()
+        if self.current_char != '\'':
+            self.error("CHAR PROBLEM")
+        self.advance()
+        return Token(CHAR, ord(char))
 
     def _id(self):
         """ Handle identifiers and reserved keywords """
@@ -117,7 +127,10 @@ class Lexer(object):
                 return self.number()
 
             if self.current_char == '"':
-                return Token(STRING, self.string())
+                return self.string()
+
+            if self.current_char == '\'':
+                return self.char()
 
             if self.current_char == '<' and self.peek(1) == '<' and self.peek(2) == '=':
                 self.advance()

@@ -47,7 +47,7 @@ digraph astgraph {
   node23 [label="int"]
   node21 -> node23
   node17 -> node21
-  node24 [label="CompoundStmt"]
+  node24 [label="FunctionBody"]
   node25 [label="VarDecl"]
   node26 [label="a"]
   node25 -> node26

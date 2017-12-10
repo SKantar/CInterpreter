@@ -31,7 +31,7 @@ class SemanticAnalyzerTestCase(unittest.TestCase):
                     b = 2;
                 }
                 
-                int r = (double)test(a, b);
+                int r = test(a);
                 printf("%d", c + 2);
                 return 0;
             }

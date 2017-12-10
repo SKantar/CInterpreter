@@ -2,7 +2,8 @@
 This module file supports basic functions from stdio.h library
 """
 
-from .utils import definition
+from ..utils.utils import definition
+from ..interpreter.number import Number
 
 @definition(return_type='int', arg_types=None)
 def printf(*args):
@@ -12,7 +13,7 @@ def printf(*args):
     """
     fmt, *params = args
     fmt = fmt.replace('\\n', '\n')
-    message = fmt % tuple(params)
+    message = fmt % tuple([param.value for param in params])
     result = len(message)
     print(message, end='')
     return result
@@ -27,10 +28,10 @@ def scanf(*args):
     import re
     def cast(flag):
         if flag[-1] == 'd':
-            return int
+            return 'int'
         raise Exception('You are not allowed to use \'{}\' other type'.format(flag))
 
-    fmt, *params = args
+    fmt, *params, memory = args
     fmt = re.sub(r'\s+', '', fmt)
     all_flags = re.findall('%[^%]*[dfi]', fmt)
     if len(all_flags) != len(params):
@@ -43,5 +44,6 @@ def scanf(*args):
         str = input()
         elements.extend(str.split())
     for flag, param, val in zip(all_flags, params, elements):
-        memory[param] = cast(flag)(val)
+        memory[param] = Number(cast(flag), val)
+
     return len(elements)

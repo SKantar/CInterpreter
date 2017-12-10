@@ -7,27 +7,51 @@ class InterpreterTestCase(unittest.TestCase):
 
     def test_analyzer(self):
         self.interpret("""
-            #include <stdio.h>
-            
-            int test(int a){
-                printf("%d", a);
-                return a;
-            }
-            int b = 1 + 2;
+           #include <stdio.h>
 
-            int main(){
-               int a = 2;
-               int c = a + 3 - 1;
-               scanf("%d %d", &a, &b);
-               if(5){
-                    c = 1;
-                    c = c + 1; 
-               }
-               else
-               {
-                    c = -2;
-               }
-               printf("%.2f", test(b + c + 3));
-               return 0;
+    int min(int a, int b){
+        return a < b ? a : b;
+    }
+
+    int main(){
+        int n, i, j;
+
+        scanf("%d", &n);
+        int k = n / 2 + 1, t = 1;
+        char c = 'A';
+        for(i = 0; i < n; i ++){
+            for(j = 0; j < n; j++){
+                if(t == 1){
+                    if(j >= n - k || (j == 0 && k == 1)){
+                        printf(".");
+                    }else{
+                        printf("%c", c);
+                    }
+                }else{
+                    if(j < k){
+                        printf(".");
+                    }else{
+                        printf("%c", c);
+                    }
+
+                }
             }
+
+            if(t == 1)
+                k--;
+            else
+                k++;
+
+
+            if(k == 0){
+                t = 0;
+                k = 2;
+            }
+
+            c += 1;
+            printf("\n");
+        }
+        return 0;
+    }
+
         """)

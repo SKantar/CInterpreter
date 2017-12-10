@@ -49,7 +49,7 @@ digraph astgraph {
   node24 [label="int"]
   node22 -> node24
   node18 -> node22
-  node25 [label="CompoundStmt"]
+  node25 [label="FunctionBody"]
   node26 [label="ReturnStmt"]
   node27 [label="Expression"]
   node28 [label="+"]
@@ -75,7 +75,7 @@ digraph astgraph {
   node37 [label="int"]
   node35 -> node37
   node31 -> node35
-  node38 [label="CompoundStmt"]
+  node38 [label="FunctionBody"]
   node39 [label="VarDecl"]
   node40 [label="a"]
   node39 -> node40

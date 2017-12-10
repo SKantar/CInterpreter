@@ -48,7 +48,7 @@ class Parser(object):
         """
         declarations = []
 
-        while self.current_token.type in [FLOAT, DOUBLE, INT, HASH]:
+        while self.current_token.type in [CHAR, FLOAT, DOUBLE, INT, HASH]:
             if self.current_token.type == HASH:
                 declarations.append(self.include_library())
             elif self.check_function():
@@ -107,7 +107,24 @@ class Parser(object):
             type_node=type_node,
             func_name=func_name,
             params=params,
-            body=self.compound_statement(),
+            body=self.function_body(),
+            line=self.lexer.line
+        )
+
+    def function_body(self):
+        """
+        function_body               : LBRACKET (declaration_list | statement)* RBRACKET
+        """
+        result = []
+        self.eat(LBRACKET)
+        while self.current_token.type != RBRACKET:
+            if self.current_token.type in (CHAR, INT, FLOAT, DOUBLE):
+                result.extend(self.declaration_list())
+            else:
+                result.append(self.statement())
+        self.eat(RBRACKET)
+        return FunctionBody(
+            children=result,
             line=self.lexer.line
         )
 
@@ -136,7 +153,7 @@ class Parser(object):
         declaration_list            : declaration+
         """
         result = self.declaration()
-        while self.current_token.type == (INT, FLOAT, DOUBLE):
+        while self.current_token.type == (CHAR, INT, FLOAT, DOUBLE):
             result.extend(self.declaration())
         return result
 
@@ -216,7 +233,7 @@ class Parser(object):
         result = []
         self.eat(LBRACKET)
         while self.current_token.type != RBRACKET:
-            if self.current_token.type in (INT, FLOAT, DOUBLE):
+            if self.current_token.type in (CHAR, INT, FLOAT, DOUBLE):
                 result.extend(self.declaration_list())
             else:
                 result.append(self.statement())
@@ -576,7 +593,7 @@ class Parser(object):
     def check_cast_expression(self):
         if self.current_token.type == LPAREN:
             self.eat(LPAREN)
-            if self.current_token.type in [DOUBLE, INT, FLOAT]:
+            if self.current_token.type in [CHAR, DOUBLE, INT, FLOAT]:
                 self.eat(self.current_token.type)
                 return self.current_token.type == RPAREN
         return False
@@ -694,7 +711,13 @@ class Parser(object):
                                     | REAL_CONST
         """
         token = self.current_token
-        if token.type == INTEGER_CONST:
+        if token.type == CHAR_CONST:
+            self.eat(CHAR_CONST)
+            return Num(
+                token=token,
+                line=self.lexer.line
+            )
+        elif token.type == INTEGER_CONST:
             self.eat(INTEGER_CONST)
             return Num(
                 token=token,
@@ -712,7 +735,7 @@ class Parser(object):
         type_spec                   : TYPE
         """
         token = self.current_token
-        if token.type in (INT, FLOAT, DOUBLE):
+        if token.type in (CHAR, INT, FLOAT, DOUBLE):
             self.eat(token.type)
             return Type(
                 token=token,
@@ -756,6 +779,8 @@ class Parser(object):
         include_library             : HASH ID<'include'> LESS_THAN ID DOT ID<'h'> GREATER_THAN
 
         function_declaration        : type_spec ID LPAREN parameters RPAREN compound_statement
+
+        function_body               : LBRACKET (declaration_list | statement)* RBRACKET
 
         parameters                  : type_spec variable (COMMA type_spec variable)*
 

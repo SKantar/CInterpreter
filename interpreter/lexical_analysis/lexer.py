@@ -93,9 +93,13 @@ class Lexer(object):
         self.advance()
         char = self.current_char
         self.advance()
+        if char == '\\':
+            char += self.current_char
+            self.advance()
         if self.current_char != '\'':
             self.error("CHAR PROBLEM")
         self.advance()
+        char = char.replace('\\n', '\n')
         return Token(CHAR_CONST, ord(char))
 
     def _id(self):

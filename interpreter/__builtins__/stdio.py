@@ -47,3 +47,11 @@ def scanf(*args):
         memory[param] = Number(cast(flag), val)
 
     return len(elements)
+
+
+@definition(return_type='char', arg_types=[])
+def getchar():
+    import sys
+    return ord(sys.stdin.read(1))
+
+

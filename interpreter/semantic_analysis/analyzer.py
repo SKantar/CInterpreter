@@ -1,5 +1,5 @@
 from ..syntax_analysis.tree import NodeVisitor, Type
-from ..syntax_analysis.parser import INTEGER_CONST, REAL_CONST
+from ..syntax_analysis.parser import INTEGER_CONST, CHAR_CONST
 from .table import *
 from ..utils.utils import get_all_module_func, get_name
 import warnings
@@ -221,6 +221,12 @@ class SemanticAnalyzer(NodeVisitor):
         self.visit(node.tbody)
         self.visit(node.fbody)
 
+    def visit_ForStmt(self, node):
+        self.visit(node.setup)
+        self.visit(node.condition)
+        self.visit(node.increment)
+        self.visit(node.body)
+
     def visit_WhileStmt(self, node):
         self.visit(node.condition)
         self.visit(node.body)
@@ -235,6 +241,8 @@ class SemanticAnalyzer(NodeVisitor):
     def visit_Num(self, node):
         if node.token.type == INTEGER_CONST:
             return SemanticAnalyzer.CType("int")
+        elif node.token.type == CHAR_CONST:
+            return SemanticAnalyzer.CType("char")
         else:
             return SemanticAnalyzer.CType("float")
 

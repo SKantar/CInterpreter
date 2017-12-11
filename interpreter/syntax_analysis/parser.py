@@ -709,6 +709,7 @@ class Parser(object):
         """
         constant                    : INTEGER_CONST
                                     | REAL_CONST
+                                    | CHAR_CONST
         """
         token = self.current_token
         if token.type == CHAR_CONST:

@@ -66,11 +66,17 @@ class Interpreter(NodeVisitor):
             self.memory.del_frame()
             return res
         else:
-            return self.memory[node.name](*args)
+            return Number(self.memory[node.name].return_type, self.memory[node.name](*args))
 
     def visit_UnOp(self, node):
         if node.op.type == AND_OP:
             return node.expr.value
+        elif node.op.type == INC_OP:
+            self.memory[node.expr.value] += Number('int', 1)
+            return self.memory[node.expr.value]
+        elif node.op.type == DEC_OP:
+            self.memory[node.expr.value] -= Number('int', 1)
+            return self.memory[node.expr.value]
         return self.visit(node.expr)
 
     def visit_CompoundStmt(self, node):
@@ -87,6 +93,8 @@ class Interpreter(NodeVisitor):
     def visit_Num(self, node):
         if node.token.type == INTEGER_CONST:
             return Number(ttype="int", value=node.value)
+        elif node.token.type == CHAR_CONST:
+            return Number(ttype="char", value=node.value)
         else:
             return Number(ttype="float", value=node.value)
 
@@ -103,9 +111,12 @@ class Interpreter(NodeVisitor):
             self.memory[var_name] *= self.visit(node.right)
         elif node.op.type == DIV_ASSIGN:
             self.memory[var_name] /= self.visit(node.right)
-            pass
         else:
             self.memory[var_name] = self.visit(node.right)
+        return self.memory[var_name]
+
+    def visit_NoOp(self, node):
+        pass
 
     def visit_BinOp(self, node):
         if node.op.type == ADD_OP:
@@ -148,6 +159,12 @@ class Interpreter(NodeVisitor):
         while self.visit(node.condition):
             self.visit(node.body)
 
+    def visit_ForStmt(self, node):
+        self.visit(node.setup)
+        while self.visit(node.condition):
+            self.visit(node.body)
+            self.visit(node.increment)
+
     def interpret(self, tree):
         self.load_libraries(tree)
         self.load_functions(tree)
@@ -155,7 +172,6 @@ class Interpreter(NodeVisitor):
         self.memory.new_frame('main')
         node = self.memory['main']
         res = self.visit(node)
-        # print(self.memory)
         self.memory.del_frame()
         return res
 

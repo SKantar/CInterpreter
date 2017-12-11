@@ -1,7 +1,7 @@
 from ..syntax_analysis.tree import NodeVisitor, Type
 from ..syntax_analysis.parser import INTEGER_CONST, CHAR_CONST
 from .table import *
-from ..utils.utils import get_all_module_func, get_name
+from ..utils.utils import get_functions, get_name
 import warnings
 
 class SemanticError(Exception):
@@ -67,6 +67,8 @@ class SemanticAnalyzer(NodeVisitor):
         self.current_scope = self.current_scope.enclosing_scope
 
     def visit_VarDecl(self, node):
+        """ type_node var_node """
+
         type_name = node.type_node.value
         type_symbol = self.current_scope.lookup(type_name)
 
@@ -84,7 +86,9 @@ class SemanticAnalyzer(NodeVisitor):
         self.current_scope.insert(var_symbol)
 
     def visit_IncludeLibrary(self, node):
-        functions = get_all_module_func('interpreter.__builtins__.{}'.format(
+        """ #include <library_name.h> """
+
+        functions = get_functions('interpreter.__builtins__.{}'.format(
             node.library_name
         ))
 
@@ -108,6 +112,8 @@ class SemanticAnalyzer(NodeVisitor):
             self.current_scope.insert(func_symbol)
 
     def visit_FunctionDecl(self, node):
+        """ type_node  func_name ( params ) body """
+
         type_name = node.type_node.value
         type_symbol = self.current_scope.lookup(type_name)
 
@@ -134,10 +140,13 @@ class SemanticAnalyzer(NodeVisitor):
         self.current_scope = self.current_scope.enclosing_scope
 
     def visit_FunctionBody(self, node):
+        """ { children } """
         for child in node.children:
             self.visit(child)
 
     def visit_Param(self, node):
+        """ type_node var_node """
+
         type_name = node.type_node.value
         type_symbol = self.current_scope.lookup(type_name)
 
@@ -156,6 +165,8 @@ class SemanticAnalyzer(NodeVisitor):
         return var_symbol
 
     def visit_CompoundStmt(self, node):
+        """ { children } """
+
         procedure_scope = ScopedSymbolTable(
             scope_name=get_name(self.current_scope.scope_name),
             scope_level=self.current_scope.scope_level + 1,
@@ -169,15 +180,18 @@ class SemanticAnalyzer(NodeVisitor):
         self.current_scope = self.current_scope.enclosing_scope
 
     def visit_BinOp(self, node):
+        """ left op right """
         return self.visit(node.left) + self.visit(node.right)
 
     def visit_UnOp(self, node):
+        """ op expr """
         if isinstance(node.op, Type):
             self.visit(node.expr)
             return SemanticAnalyzer.CType(node.op.value)
         return self.visit(node.expr)
 
     def visit_TerOp(self, node):
+        """ condition ? texpression : fexpression """
         self.visit(node.condition)
         texpr = self.visit(node.texpression)
         fexpr = self.visit(node.fexpression)
@@ -190,6 +204,7 @@ class SemanticAnalyzer(NodeVisitor):
         return texpr
 
     def visit_Assign(self, node):
+        """ right = left """
         right = self.visit(node.right)
         left = self.visit(node.left)
         if left != right:
@@ -202,6 +217,7 @@ class SemanticAnalyzer(NodeVisitor):
         return right
 
     def visit_Var(self, node):
+        """ value """
         var_name = node.value
         var_symbol = self.current_scope.lookup(var_name)
         if var_symbol is None:
@@ -217,28 +233,34 @@ class SemanticAnalyzer(NodeVisitor):
         pass
 
     def visit_IfStmt(self, node):
+        """ if (condition) tbody else fbody """
         self.visit(node.condition)
         self.visit(node.tbody)
         self.visit(node.fbody)
 
     def visit_ForStmt(self, node):
+        """ for(setup condition increment) body"""
         self.visit(node.setup)
         self.visit(node.condition)
         self.visit(node.increment)
         self.visit(node.body)
 
     def visit_WhileStmt(self, node):
+        """ while(condition) body """
         self.visit(node.condition)
         self.visit(node.body)
 
     def visit_DoWhileStmt(self, node):
+        """ do body while (condition) """
         self.visit(node.condition)
         self.visit(node.body)
 
     def visit_ReturnStmt(self, node):
+        """ return expression """
         return self.visit(node.expression)
 
     def visit_Num(self, node):
+        """ value """
         if node.token.type == INTEGER_CONST:
             return SemanticAnalyzer.CType("int")
         elif node.token.type == CHAR_CONST:

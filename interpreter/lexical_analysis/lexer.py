@@ -77,12 +77,13 @@ class Lexer(object):
         return token
 
     def string(self):
+        """ Return string written in code without double quotes"""
         result = ''
         self.advance()
         while self.current_char is not '"':
             if self.current_char is None:
                 self.error(
-                    message='Unfinished string with \'"\'at line {}'.format(self.line)
+                    message='Unfinished string with \'"\' at line {}'.format(self.line)
                 )
             result += self.current_char
             self.advance()
@@ -90,6 +91,7 @@ class Lexer(object):
         return Token(STRING, result)
 
     def char(self):
+        """ Handle chars between single quotes """
         self.advance()
         char = self.current_char
         self.advance()
@@ -97,7 +99,7 @@ class Lexer(object):
             char += self.current_char
             self.advance()
         if self.current_char != '\'':
-            self.error("CHAR PROBLEM")
+            self.error("Unclosed char constant at line {}".format(self.line))
         self.advance()
         char = char.replace('\\n', '\n')
         return Token(CHAR_CONST, ord(char))

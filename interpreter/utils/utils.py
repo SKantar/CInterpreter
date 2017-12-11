@@ -5,12 +5,12 @@ import importlib
 def import_module(libname):
     return importlib.import_module(libname)
 
-def get_all_module_func(libname):
-    lib = import_module(libname)
+def get_functions(module):
+    lib = import_module(module)
 
     for func_name in dir(lib):
         func = getattr(lib, func_name)
-        if callable(func) and not func_name.startswith('__') and func.__module__.endswith(libname):
+        if callable(func) and not func_name.startswith('__') and func.__module__.endswith(module):
             yield func
 
 def restorable(fn):

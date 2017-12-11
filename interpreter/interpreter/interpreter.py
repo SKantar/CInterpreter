@@ -5,7 +5,7 @@ from ..lexical_analysis.token_type import *
 from ..syntax_analysis.parser import Parser
 from ..syntax_analysis.tree import *
 from ..semantic_analysis.analyzer import SemanticAnalyzer
-from ..utils.utils import get_all_module_func, MessageColor
+from ..utils.utils import get_functions, MessageColor
 
 class Interpreter(NodeVisitor):
 
@@ -18,7 +18,7 @@ class Interpreter(NodeVisitor):
 
     def load_libraries(self, tree):
         for node in filter(lambda o: isinstance(o, IncludeLibrary), tree.children):
-            functions = get_all_module_func('interpreter.__builtins__.{}'.format(
+            functions = get_functions('interpreter.__builtins__.{}'.format(
                 node.library_name
             ))
 

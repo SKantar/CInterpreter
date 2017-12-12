@@ -11,8 +11,7 @@ significance (where spacing indicates block structure, where white space may occ
 in character strings and so on).
 
 For example, this C program fragment:
-```
+``` c++
 sum = 0;
-for (i=0; i<=99; i++) sum += a[i];
-/* sum array */
+for (i=0; i<=99; i++) sum += i; /* sum array */
 ```

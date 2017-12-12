@@ -15,3 +15,10 @@ For example, this C program fragment:
 sum = 0;
 for (i=0; i<=99; i++) sum += i; /* sum array */
 ```
+will be read by the lexical analyser and it would generate this stream of tokens:
+```
+Token(ID, 'sum'), Token(ASSIGN, '='), Token(INTEGER_CONST, 0), TOKEN(SEMICOLON, ';'), Token(FOR, 'for'),
+Token(LPAREN, '('), Token(ID, 'i'), Token(ASSIGN, '='), Token(INTEGER_CONST, 0), TOKEN(SEMICOLON, ';'),
+Token(ID, 'i'), Token(LE_OP, '<='), Token(INTEGER_CONST, 99), TOKEN(SEMICOLON, ';'), Token(ID, 'i'),
+Token(INC_OP, '++'), Token(RPAREN, ')'), Token(ID, 'sum'), Token(ADD_ASSIGN, '+='), Token(ID, 'i')
+```

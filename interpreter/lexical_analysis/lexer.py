@@ -19,6 +19,7 @@ RESERVED_KEYWORDS = {
 
 
 class LexicalError(Exception):
+    """ Class was created to isolate lexical errors """
     pass
 
 

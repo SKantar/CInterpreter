@@ -842,7 +842,7 @@ class Parser(object):
 
         multiplicative_expression   : cast_expression ((MUL_OP | DIV_OP | MOD_OP) cast_expression)*
 
-        multiplicative_expression   : LPAREN type_spec RPAREN cast_expression
+        cast_expression             : LPAREN type_spec RPAREN cast_expression
                                     | unary_expression
 
         unary_expression            : INC_OP unary_expression

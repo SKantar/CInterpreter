@@ -6,7 +6,8 @@ int main(){
     printf("%d\n", ++i);
     printf("%d\n", !i);
     printf("%d\n", !(!i));
-    printf("%d", (int)2.1);
+    printf("%d\n", (int)2.1);
+    printf("%d", 2 != 2);
 
     return 0;
 }

@@ -1,5 +1,7 @@
 class Token(object):
-    """ This class represents Token (output) object from Lexical analysis """
+    """ This class represents Token
+    Output from Lexical analysis is list of tokens"""
+
     def __init__(self, type, value):
         self.type = type
         self.value = value

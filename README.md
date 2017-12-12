@@ -10,3 +10,16 @@ other language. With this interpreter you can execute codes like following:
 * [example2](example2.c)
 * [example3](example3.c)
 * [example4](example4.c)
+
+## Setup
+**Prerequsite**:<br/>
+    - Install [python3.5](https://www.python.org) or later, preferably use a virtualenv.<br/>
+
+### Running test on a file
+To execute program, run `python3 __main__.py -f <file>`.
+
+For example, to run the [example1](example1.c):
+```bash
+cd CInterpreter
+python3 __main__.py -f example1.c
+```

@@ -11,4 +11,4 @@ Here is the list of supported libraries(functions):
 * [math.h](math.py)
     * double sqrt(double)
 
-**you can easily extend this**
+*You can easily extend this list by adding functions to existing files or by creating new .py file named as library and adding new functions to it*

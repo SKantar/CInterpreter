@@ -15,8 +15,8 @@ other language. With this interpreter you can execute codes like following:
 **Prerequsite**:<br/>
     - Install [python3.5](https://www.python.org) or later, preferably use a virtualenv.<br/>
 
-### Running test on a file
-To execute program, run `python3 __main__.py -f <file>`.
+### Running interpreter
+To execute c program, run `python3 __main__.py -f <file>`.
 
 For example, to run the [example1](example1.c):
 ```bash

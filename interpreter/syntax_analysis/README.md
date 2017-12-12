@@ -6,6 +6,7 @@ together components by performing reductions according to the production rules. 
 that the sequence of tokens is syntactically correct, the parse should succeed.
 If the sequence is not syntactically correct, then the syntax analyser should report
 an error and then perform some appropriate recovery action.
+
 The syntax analyser constructs a data structure representing the syntactic structure
 of the input. This is usually based on some form of tree where the nodes represent
 syntactic components defined by the grammar. This is the parse tree or abstract syntax
@@ -13,6 +14,7 @@ tree. This data structure should contain or link to all the information needed b
 phases of compilation. So, for example, a node corresponding to the occurrence of a
 constant value in the original program should contain or link to information defining
 that constant such as its type, value and so on.
+
 It is clear that the lexical and syntax analysers are doing similar things. They
 are both grouping together characters or tokens into larger syntactic units. So there
 is an issue about whether a particular syntactic structure should be recognised by

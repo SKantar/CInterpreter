@@ -17,8 +17,19 @@ for (i=0; i<=99; i++) sum += i; /* sum array */
 ```
 will be read by the lexical analyser and it would generate this stream of tokens:
 ```
-Token(ID, 'sum'), Token(ASSIGN, '='), Token(INTEGER_CONST, 0), TOKEN(SEMICOLON, ';'), Token(FOR, 'for'),
+Token(ID, 'sum'),   Token(ASSIGN, '='), Token(INTEGER_CONST, 0), TOKEN(SEMICOLON, ';'), Token(FOR, 'for'),
 Token(LPAREN, '('), Token(ID, 'i'), Token(ASSIGN, '='), Token(INTEGER_CONST, 0), TOKEN(SEMICOLON, ';'),
 Token(ID, 'i'), Token(LE_OP, '<='), Token(INTEGER_CONST, 99), TOKEN(SEMICOLON, ';'), Token(ID, 'i'),
 Token(INC_OP, '++'), Token(RPAREN, ')'), Token(ID, 'sum'), Token(ADD_ASSIGN, '+='), Token(ID, 'i')
 ```
+
+The syntax of these basic lexical tokens is usually simple, and the expectation
+is that the syntax can be specified formally in terms of a Chomsky type 3 grammar
+(i.e. in terms of regular expressions). This considerably simplifies the coding of the
+lexical analyser.
+
+The output of the lexical analyser is a stream of tokens, passed to the syntax
+analyser. The interface could be such that the lexical analyser tokenises the entire
+input file and then passes the whole list of tokens to the syntax analyser. Alternatively,
+the tokens could be passed on to the syntax analyser one at a time, when demanded
+by the syntax analyser.

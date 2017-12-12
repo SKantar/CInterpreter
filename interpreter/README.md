@@ -1,6 +1,6 @@
 # Complete Interpreter package
 
-Complete C interpreter written in python:__
+Complete C interpreter written in python:<br/>
 *contains all phases except optimization*
 
 * [Lexical analysis](lexical_analysis/)

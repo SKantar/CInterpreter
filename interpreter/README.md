@@ -4,6 +4,6 @@ Complete C interpreter written in python:
 *contains all phases except optimization*
 
 * [Lexical analysis](lexical_analysis/)
-* Syntax analysis(syntax_analysis/)
-* Semantic analysis(semantic_analysis/)
-* Interpreter(interpreter/)
+* [Syntax analysis](syntax_analysis/)
+* [Semantic analysis](semantic_analysis/)
+* [Interpreter](interpreter/)

@@ -1,8 +1,9 @@
 # Complete Interpreter package
 
 Complete C interpreter written in python:
+*contains all phases except optimization*
 
-* [Lexical analysis](interpreter/)
-* Syntax analysis
-* Semantic analysis
-* Interpreter
+* [Lexical analysis](lexical_analysis/)
+* Syntax analysis(syntax_analysis/)
+* Semantic analysis(semantic_analysis/)
+* Interpreter(interpreter/)

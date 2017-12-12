@@ -24,7 +24,7 @@ class LexicalError(Exception):
 
 class Lexer(object):
     def __init__(self, text):
-        self.text = text
+        self.text = text.replace('\\n', '\n')
         self.pos = 0
         self.current_char = self.text[self.pos]
         self.line = 1
@@ -95,13 +95,9 @@ class Lexer(object):
         self.advance()
         char = self.current_char
         self.advance()
-        if char == '\\':
-            char += self.current_char
-            self.advance()
         if self.current_char != '\'':
             self.error("Unclosed char constant at line {}".format(self.line))
         self.advance()
-        char = char.replace('\\n', '\n')
         return Token(CHAR_CONST, ord(char))
 
     def _id(self):

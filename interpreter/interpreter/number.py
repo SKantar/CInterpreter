@@ -102,6 +102,9 @@ class Number(object):
     def __bool__(self):
         return bool(self.value)
 
+    def _not(self):
+        return Number('int', 0) if self.value else Number('int', 1)
+
     def __repr__(self):
         return '{} ({})'.format(
             self.type,

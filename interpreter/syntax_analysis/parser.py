@@ -608,7 +608,7 @@ class Parser(object):
             type_node = self.type_spec()
             self.eat(RPAREN)
             return UnOp(
-                op=type_node,
+                op=type_node.token,
                 expr=self.cast_expression(),
                 line=self.lexer.line
             )

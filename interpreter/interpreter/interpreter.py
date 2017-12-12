@@ -12,10 +12,6 @@ class Interpreter(NodeVisitor):
     def __init__(self):
         self.memory = Memory()
 
-    def load_functions(self, tree):
-        for node in filter(lambda o: isinstance(o, FunctionDecl), tree.children):
-            self.memory[node.func_name] = node
-
     def load_libraries(self, tree):
         for node in filter(lambda o: isinstance(o, IncludeLibrary), tree.children):
             functions = get_functions('interpreter.__builtins__.{}'.format(
@@ -24,6 +20,10 @@ class Interpreter(NodeVisitor):
 
             for function in functions:
                 self.memory[function.__name__] = function
+
+    def load_functions(self, tree):
+        for node in filter(lambda o: isinstance(o, FunctionDecl), tree.children):
+            self.memory[node.func_name] = node
 
     def visit_Program(self, node):
         for var in filter(lambda self: not isinstance(self, (FunctionDecl, IncludeLibrary)), node.children):
@@ -69,14 +69,35 @@ class Interpreter(NodeVisitor):
             return Number(self.memory[node.name].return_type, self.memory[node.name](*args))
 
     def visit_UnOp(self, node):
-        if node.op.type == AND_OP:
-            return node.expr.value
-        elif node.op.type == INC_OP:
-            self.memory[node.expr.value] += Number('int', 1)
-            return self.memory[node.expr.value]
-        elif node.op.type == DEC_OP:
-            self.memory[node.expr.value] -= Number('int', 1)
-            return self.memory[node.expr.value]
+        if node.prefix:
+            if node.op.type == AND_OP:
+                return node.expr.value
+            elif node.op.type == INC_OP :
+                self.memory[node.expr.value] += Number('int', 1)
+                return self.memory[node.expr.value]
+            elif node.op.type == DEC_OP:
+                self.memory[node.expr.value] -= Number('int', 1)
+                return self.memory[node.expr.value]
+            elif node.op.type == SUB_OP:
+                return Number('int', -1) * self.visit(node.expr)
+            elif node.op.type == ADD_OP:
+                return self.visit(node.expr)
+            elif node.op.type == LOG_NEG:
+                res = self.visit(node.expr)
+                return res._not()
+            else:
+                res = self.visit(node.expr)
+                return Number(node.op.value, res.value)
+        else:
+            if node.op.type == INC_OP :
+                var = self.memory[node.expr.value]
+                self.memory[node.expr.value] += Number('int', 1)
+                return var
+            elif node.op.type == DEC_OP:
+                var = self.memory[node.expr.value]
+                self.memory[node.expr.value] -= Number('int', 1)
+                return var
+
         return self.visit(node.expr)
 
     def visit_CompoundStmt(self, node):
@@ -177,22 +198,21 @@ class Interpreter(NodeVisitor):
 
     @staticmethod
     def run(program):
-        # try:
-        lexer = Lexer(program)
-        parser = Parser(lexer)
-        tree = parser.parse()
-        SemanticAnalyzer.analyze(tree)
-        status = Interpreter().interpret(tree)
-        # print(status)
-        # except Exception as message:
-        #     print("{}[{}] {} {}".format(
-        #         MessageColor.FAIL,
-        #         type(message).__name__,
-        #         message,
-        #         MessageColor.ENDC
-        #     ))
-        #     status = -1
-        # print()
-        # print(MessageColor.OKBLUE + "Process terminated with status {}".format(status) + MessageColor.ENDC)
+        try:
+            lexer = Lexer(program)
+            parser = Parser(lexer)
+            tree = parser.parse()
+            SemanticAnalyzer.analyze(tree)
+            status = Interpreter().interpret(tree)
+        except Exception as message:
+            print("{}[{}] {} {}".format(
+                MessageColor.FAIL,
+                type(message).__name__,
+                message,
+                MessageColor.ENDC
+            ))
+            status = -1
+        print()
+        print(MessageColor.OKBLUE + "Process terminated with status {}".format(status) + MessageColor.ENDC)
 
 

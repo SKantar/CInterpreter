@@ -6,7 +6,7 @@ int min(int a, int b){
 
 int main(){
     int n, i, j;
-
+    double z = 3;
     scanf("%d", &n);
     int k = n / 2 + 1, t = 1;
     char c = 'A';

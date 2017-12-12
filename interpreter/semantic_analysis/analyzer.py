@@ -1,8 +1,7 @@
 from ..syntax_analysis.tree import NodeVisitor, Type
 from ..syntax_analysis.parser import INTEGER_CONST, CHAR_CONST
 from .table import *
-from ..utils.utils import get_functions, get_name
-import warnings
+from ..utils.utils import get_functions, get_name, MessageColor
 
 class SemanticError(Exception):
     pass
@@ -13,9 +12,7 @@ class TypeError(UserWarning):
 class SemanticAnalyzer(NodeVisitor):
 
     class CType(object):
-        """
-
-        """
+        types = dict(char=int, int=int, float=float, double=float)
         order = ('char', 'int', 'float', 'double')
 
         def __init__(self, ttype):
@@ -30,7 +27,7 @@ class SemanticAnalyzer(NodeVisitor):
             return self._calc_type(other)
 
         def __eq__(self, other):
-            return self.type == other.type
+            return SemanticAnalyzer.CType.types[self.type] == SemanticAnalyzer.CType.types[other.type]
 
         def __repr__(self):
             return '{}'.format(self.type)
@@ -45,7 +42,7 @@ class SemanticAnalyzer(NodeVisitor):
         raise SemanticError(message)
 
     def warning(self, message):
-        warnings.warn(message)
+        print(MessageColor.WARNING + message + MessageColor.ENDC)
 
     def visit_Program(self, node):
         global_scope = ScopedSymbolTable(
@@ -208,9 +205,8 @@ class SemanticAnalyzer(NodeVisitor):
         right = self.visit(node.right)
         left = self.visit(node.left)
         if left != right:
-            self.warning("Incompatibile types <{}> {} <{}> at line {}".format(
+            self.warning("Incompatible types when assigning to type <{}> from type <{}> at line {}".format(
                 left,
-                node.op.value,
                 right,
                 node.line
             ))

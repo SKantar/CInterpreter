@@ -1,9 +1,2 @@
-import sys
-a = sys.stdin.read(1)
-print(a)
-b = sys.stdin.read(1)
-print(b)
-b = sys.stdin.read(1)
-print(b)
-b = sys.stdin.read(1)
-print(b)
+import random
+print(random.randint(0, 2**32))

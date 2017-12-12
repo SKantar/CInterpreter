@@ -1,3 +1,5 @@
+import random
+
 class Scope(object):
     def __init__(self, scope_name, parent_scope=None):
         self.scope_name = scope_name
@@ -94,7 +96,7 @@ class Memory(object):
         self.global_frame = Frame('GLOBAL_MEMORY', None)
         self.stack = Stack()
 
-    def declare(self, key, value=None):
+    def declare(self, key, value=random.randint(0, 2**32)):
         ins_scope = self.stack.current_frame.current_scope if self.stack.current_frame else self.global_frame.current_scope
         ins_scope[key] = value
 

@@ -12,7 +12,6 @@ def printf(*args):
         printf("%d %d", 1, 2);
     """
     fmt, *params = args
-    fmt = fmt.replace('\\n', '\n')
     message = fmt % tuple([param.value for param in params])
     result = len(message)
     print(message, end='')

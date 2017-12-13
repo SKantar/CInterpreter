@@ -1,3 +1,7 @@
+.. image:: https://www.gnu.org/graphics/afl-3.0-147x51.png
+   :target: https://www.gnu.org/licenses/afl-3.0.en.html
+   :alt: License: AFL-v3
+
 CInterpreter
 =============
 CInterpreter is a very small C interpreter written in Python from scratch. Project was written as a part of course

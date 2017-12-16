@@ -166,6 +166,12 @@ class Interpreter(NodeVisitor):
             return self.visit(node.left) and self.visit(node.right)
         elif node.op.type == LOG_OR_OP:
             return self.visit(node.left) or self.visit(node.right)
+        elif node.op.type == AND_OP:
+            return self.visit(node.left) & self.visit(node.right)
+        elif node.op.type == OR_OP:
+            return self.visit(node.left) | self.visit(node.right)
+        elif node.op.type == XOR_OP:
+            return self.visit(node.left) ^ self.visit(node.right)
 
     def visit_String(self, node):
         return node.value

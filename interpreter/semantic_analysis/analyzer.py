@@ -1,5 +1,5 @@
 from ..syntax_analysis.tree import NodeVisitor, Type
-from ..syntax_analysis.parser import INTEGER_CONST, CHAR_CONST
+from ..syntax_analysis.parser import INTEGER_CONST, CHAR_CONST, AND_OP, OR_OP, XOR_OP
 from .table import *
 from ..utils.utils import get_functions, get_name, MessageColor
 
@@ -178,7 +178,16 @@ class SemanticAnalyzer(NodeVisitor):
 
     def visit_BinOp(self, node):
         """ left op right """
-        return self.visit(node.left) + self.visit(node.right)
+        ltype = self.visit(node.left)
+        rtype = self.visit(node.right)
+        if node.op.type == AND_OP or node.op.type == OR_OP or node.op.type == XOR_OP:
+            if ltype.type != "int" or rtype.type != "int":
+                self.error("Unsupported types at bitwise operator ltype:<{}> rtype:<{}> at line {}".format(
+                    ltype.type,
+                    rtype.type,
+                    node.line
+                ))
+        return ltype + rtype 
 
     def visit_UnOp(self, node):
         """ op expr """
@@ -288,35 +297,38 @@ class SemanticAnalyzer(NodeVisitor):
                 )
             )
 
-
-        if func_symbol.params != None:
-            if len(node.args) != len(func_symbol.params):
-                self.error(
-                    "Function {} takes {} positional arguments but {} were given at line {}".format(
-                        func_name,
-                        len(node.args),
-                        len(func_symbol.params),
-                        node.line
-                    )
-                )
-
-            expected = []
-            found = []
-
+        if func_symbol.params == None:
             for i, arg in enumerate(node.args):
-                arg_type = self.visit(arg)
-                param_type = SemanticAnalyzer.CType(func_symbol.params[i].type.name)
-                expected.append(param_type)
-                found.append(arg_type)
+                self.visit(arg)
+            return SemanticAnalyzer.CType(func_symbol.type.name)
 
-            if expected != found:
-                self.warning("Incompatibile argument types for function <{}{}> but found <{}{}> at line {}".format(
+        if len(node.args) != len(func_symbol.params):
+            self.error(
+                "Function {} takes {} positional arguments but {} were given at line {}".format(
                     func_name,
-                    str(expected).replace('[', '(').replace(']', ')'),
-                    func_name,
-                    str(found).replace('[', '(').replace(']', ')'),
+                    len(node.args),
+                    len(func_symbol.params),
                     node.line
-                ))
+                )
+            )
+
+        expected = []
+        found = []
+
+        for i, arg in enumerate(node.args):
+            arg_type = self.visit(arg)
+            param_type = SemanticAnalyzer.CType(func_symbol.params[i].type.name)
+            expected.append(param_type)
+            found.append(arg_type)
+
+        if expected != found:
+            self.warning("Incompatibile argument types for function <{}{}> but found <{}{}> at line {}".format(
+                func_name,
+                str(expected).replace('[', '(').replace(']', ')'),
+                func_name,
+                str(found).replace('[', '(').replace(']', ')'),
+                node.line
+            ))
 
         return SemanticAnalyzer.CType(func_symbol.type.name)
 

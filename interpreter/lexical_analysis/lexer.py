@@ -56,6 +56,27 @@ class Lexer(object):
                 self.line += 1
             self.advance()
 
+    def skip_comment(self):
+        """ Skip single line comment """
+        while self.current_char is not None:
+            if self.current_char == '\n':
+                self.line += 1
+                self.advance()
+                return
+            self.advance()
+
+    def skip_multiline_comment(self):
+        """ Skip multi line comment """
+        while self.current_char is not None:
+            if self.current_char == '*' and self.peek(1) == '/':
+                self.advance()
+                self.advance()
+                return
+            if self.current_char == '\n':
+                self.line += 1
+            self.advance()
+        self.error("Unterminated comment at line {}".format(self.line))
+
     def number(self):
         """Return a (multidigit) integer or float consumed from the input."""
         result = ''
@@ -121,6 +142,14 @@ class Lexer(object):
 
             if self.current_char.isspace():
                 self.skip_whitespace()
+                continue
+
+            if self.current_char == '/' and self.peek(1) == '/':
+                self.skip_comment()
+                continue
+
+            if self.current_char == '/' and self.peek(1) == '*':
+                self.skip_multiline_comment()
                 continue
 
             if self.current_char.isalpha():

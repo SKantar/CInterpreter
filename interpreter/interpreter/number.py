@@ -99,6 +99,22 @@ class Number(object):
         result = self / other
         return Number(self.type, ctype(result.value))
 
+    def __and__(self, other):
+        """ self & other """
+        ttype, ctype = self._get_res_type(other)
+        return Number(ttype, int(ctype(self.value) & ctype(other.value)))
+
+    def __or__(self, other):
+        """ self | other """
+        ttype, ctype = self._get_res_type(other)
+        return Number(ttype, int(ctype(self.value) | ctype(other.value)))
+
+    def __xor__(self, other):
+        """ self ^ other """
+        ttype, ctype = self._get_res_type(other)
+        return Number(ttype, int(ctype(self.value) ^ ctype(other.value)))
+
+
     def __bool__(self):
         return bool(self.value)
 

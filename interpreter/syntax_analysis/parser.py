@@ -48,7 +48,7 @@ class Parser(object):
         """
         declarations = []
 
-        while self.current_token.type in [CHAR, FLOAT, DOUBLE, INT, HASH]:
+        while self.current_token.type in [CHAR, FLOAT, DOUBLE, INT, HASH, VOID]:
             if self.current_token.type == HASH:
                 declarations.append(self.include_library())
             elif self.check_function():
@@ -736,7 +736,7 @@ class Parser(object):
         type_spec                   : TYPE
         """
         token = self.current_token
-        if token.type in (CHAR, INT, FLOAT, DOUBLE):
+        if token.type in (CHAR, INT, FLOAT, DOUBLE, VOID):
             self.eat(token.type)
             return Type(
                 token=token,

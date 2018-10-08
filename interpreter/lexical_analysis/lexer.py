@@ -15,6 +15,7 @@ RESERVED_KEYWORDS = {
     'return': Token(RETURN, 'return'),
     'break': Token(BREAK, 'break'),
     'continue': Token(CONTINUE, 'continue'),
+    'void': Token(VOID, 'void'),    
 }
 
 
